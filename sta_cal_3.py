@@ -58,9 +58,9 @@ class Position:
         else:
             return 0
 
-#symbol_pairs = [['XEMUSDT', 'ZRXUSDT'], ['ENJUSDT', 'ZILUSDT'], ['ADAUSDT', 'COMPUSDT'], ['ADAUSDT', 'ICXUSDT'], ['FOOTBALLUSDT', 'OGNUSDT'], ['EOSUSDT', 'ZECUSDT'], ['BELUSDT', 'EDUUSDT'], ['BELUSDT', 'HOOKUSDT'], ['BELUSDT', 'CELRUSDT'], ['ONEUSDT', 'AVAXUSDT']]
+symbol_pairs = [['EOSUSDT', 'MANAUSDT'], ['HOOKUSDT', 'REEFUSDT'], ['HOOKUSDT', 'ALICEUSDT'], ['REEFUSDT', 'ALICEUSDT'], ['DASHUSDT', 'HOTUSDT'], ['DASHUSDT', 'ALICEUSDT'], ['MANAUSDT', 'GMTUSDT'], ['MANAUSDT', 'SANDUSDT'], ['MANAUSDT', 'PEOPLEUSDT'], ['HOTUSDT', 'ALICEUSDT'], ['HOTUSDT', 'LRCUSDT'], ['HOTUSDT', 'LUNA2USDT'], ['MINAUSDT', 'ONEUSDT'], ['IOSTUSDT', 'ICXUSDT'], ['SPELLUSDT', 'DARUSDT'], ['ONEUSDT', 'LRCUSDT'], ['DARUSDT', 'LRCUSDT'], ['ALICEUSDT', 'PEOPLEUSDT'], ['ALICEUSDT', 'LRCUSDT'], ['LRCUSDT', 'LUNA2USDT']]
 
-symbol_pairs = [['ALGOUSDT', 'FLMUSDT']]#['ALGOUSDT', 'FLMUSDT'], ['MANAUSDT', 'KAVAUSDT'],['MAVUSDT', 'GMTUSDT'],['ZECUSDT', 'NEOUSDT']
+#symbol_pairs = [['ALGOUSDT', 'FLMUSDT']]#['ALGOUSDT', 'FLMUSDT'], ['MANAUSDT', 'KAVAUSDT'],['MAVUSDT', 'GMTUSDT'],['ZECUSDT', 'NEOUSDT']
 period = 1000
 
 #处理symbols
@@ -92,16 +92,14 @@ for i in range(len(symbol_pairs)):
     model = sm.OLS(y, x)  # 生成模型
     result = model.fit()  # 模型拟合
     print(f'{symbol_pairs[i][0]} - {symbol_pairs[i][1]} 的相关系数 R^2 =  {result.rsquared}')
-    after_adjust_result_params = result.params[0] * \
-                                 ((max(df_data_org.loc[:,symbol_pairs[i][0]].values) + np.mean(df_data_org.loc[:,symbol_pairs[i][0]].values)) /
-                                  (max(df_data_org.loc[:,symbol_pairs[i][1]].values) + np.mean(df_data_org.loc[:,symbol_pairs[i][1]].values)))
+    after_adjust_result_params = 1
     print(f'{symbol_pairs[i][0]} - {symbol_pairs[i][1]} 的拟合直线斜率 k =  {result.params[0]}')
     #print(result.summary())
     symbols_params.append(result.params)
     consq = df_data_org.loc[:,symbol_pairs[i][0]].values - after_adjust_result_params * df_data_org.loc[:,symbol_pairs[i][1]].values
     #consq = y - x * result.params[0]
     consq_2_one = (consq - np.mean(consq)) / np.std(consq)
-    adf_consq = adfuller(consq_2_one)
+    adf_consq = adfuller(consq)
     if adf_consq[0] < adf_consq[4]['1%']:
         print(f'{symbol_pairs[i][0]} - {symbol_pairs[i][1]} 是平稳曲线的把握 99%')
         if adf_consq[1] < 0.05:
@@ -244,69 +242,20 @@ for i in range(len(symbol_pairs)):
     plt.plot(x,result.params * x,color='r')
     plt.savefig(f'D:\\学校文件\\Python\\fig\\{symbol_pairs[i][0]} - {symbol_pairs[i][1]} linear.png')
     plt.clf()
-    plt.plot(consq[-4320:],linewidth=1)
+    plt.plot(consq,linewidth=1)
     #plt.plot(np.ones(2880) * consq_mean)
-    '''plt.plot(np.ones(2880) * consq[0])
-    plt.plot(np.ones(2880) * 0.3 * consq_std + consq[0])
-    plt.plot(np.ones(2880) * (-0.3) * consq_std + consq[0])
-    plt.plot(np.ones(2880) * 0.6 * consq_std + consq[0])
-    plt.plot(np.ones(2880) * (-0.6) * consq_std + consq[0])'''
+    plt.plot(np.ones(len(consq)) * consq[0])
+    plt.plot(np.ones(len(consq)) * 0.3 * consq_std + consq[0])
+    plt.plot(np.ones(len(consq)) * (-0.3) * consq_std + consq[0])
+    plt.plot(np.ones(len(consq)) * 2 * 0.3 * consq_std + consq[0])
+    plt.plot(np.ones(len(consq)) * 2 * (-0.3) * consq_std + consq[0])
     #consq_mean = 0.00157777
-    plt.plot(np.ones(4320) * consq_mean)
-    plt.plot(np.ones(4320) * 12*0.3 * consq_std + consq_mean)
-    plt.plot(np.ones(4320) * 12*(-0.3) * consq_std + consq_mean)
-    plt.plot(np.ones(4320) * 0.3 * consq_std + consq_mean)
-    plt.plot(np.ones(4320) * (-0.3) * consq_std + consq_mean)
     #plt.plot(np.arange(2880),(profit_line - np.mean(profit_line)) / np.std(profit_line)/100)
     #plt.plot(np.arange(2880), (amount_list_test - np.mean(amount_list_test)) / max(amount_list_test)/100)
     plt.savefig(f'D:\\学校文件\\Python\\fig\\{symbol_pairs[i][0]} - {symbol_pairs[i][1]} coint.png')
-    '''yyy = []
-    xxx = []
-    for m in range(len(df_data_org.loc[:,symbol_pairs[i][0]].values)):
-        if m == 0:
-            yyy.append(0.0)
-            xxx.append(0.0)
-        else:
-            yyy.append(yyy[-1] + (df_data_org.loc[:,symbol_pairs[i][0]].values[m] -
-                        df_data_org.loc[:,symbol_pairs[i][0]].values[m-1])
-                       / df_data_org.loc[:,symbol_pairs[i][0]].values[m-1])
-            xxx.append(xxx[-1] + (df_data_org.loc[:, symbol_pairs[i][1]].values[m] -
-                        df_data_org.loc[:, symbol_pairs[i][1]].values[m - 1])
-                       / df_data_org.loc[:, symbol_pairs[i][1]].values[m - 1])
-    plt.plot(df_data_org.loc[:,symbol_pairs[i][0]].values)
-    #plt.plot(yyy)
-    plt.plot(df_data_org.loc[:, symbol_pairs[i][1]].values * after_adjust_result_params)
-    #plt.plot(xxx)
-    #plt.plot(np.array(yyy) - np.array(xxx) * 1)
-'''
 plt.show()
 
-'''x = df_data.iloc[:,0].values
-X = sm.add_constant(df_data.iloc[:,0].values)
-y = df_data.iloc[:,1].values
-model = sm.OLS(y, x) #生成模型
-result = model.fit() #模型拟合
-print(result.rsquared)
-print(result.params)
-#plt.scatter(x,y)
-#plt.plot(x,b,color='r')
 
-x1 = 0.9750
-
-#plt.plot(x-x1*y)
-result_x = x-x1*y
-result_x_2_one = (result_x - np.mean(result_x))/np.std(result_x)
-plt.plot(result_x_2_one)
-plt.plot(np.zeros(2880))
-plt.plot(np.ones(2880))
-plt.plot(np.ones(2880) * (-1))
-plt.plot(np.ones(2880) * 2)
-plt.plot(np.ones(2880) * (-2))
-print(adfuller(x))
-print(adfuller(y))
-print(adfuller(x-x1*y))
-print(sm.tsa.stattools.coint(np.reshape(x,-1),np.reshape(y,-1)))
-plt.show()'''
 
 
 
