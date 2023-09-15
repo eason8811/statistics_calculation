@@ -131,84 +131,85 @@ class BINANCE:
                                     headers=header).json()
             return response
 
-global binance
-binance = BINANCE()
+if __name__ == "__main__":
+    global binance
+    binance = BINANCE()
 
-#symbol = ['BTCUSDT','ETHUSDT','BNBUSDT','LTCUSDT','EOSUSDT','ATOMUSDT','IOTXUSDT','XRPUSDT'] # len = 8
-symbol = ['BTCUSDT']
-interval = "5m"
-limit = "1000"
+    #symbol = ['BTCUSDT','ETHUSDT','BNBUSDT','LTCUSDT','EOSUSDT','ATOMUSDT','IOTXUSDT','XRPUSDT'] # len = 8
+    symbol = ['BTCUSDT']
+    interval = "5m"
+    limit = "1000"
 
-result = []
-t = time.time()
-body = {
-
-}
-
-res = binance.IO('GET','/fapi/v1/ticker/price',body)
-#print(res)
-
-'''body = {
-    'symbol' : 'BTCUSDT',
-    'interval' : '5m',
-    'startTime' : str(1579503838*1000),
-    'limit' : str(10),
-}
-
-res = binance.IO('GET','/fapi/v1/klines',body)
-print(res)
-'''
-'''#获取历史K线
-for i in range(len(symbol)):
+    result = []
+    t = time.time()
     body = {
-        "symbol":symbol[i],
-        "interval":interval,
-        'endTime':str(1682608436000),
-        "limit":limit
+
     }
-    info = binance.IO('GET', '/fapi/v1/klines', body)
-    onesymbolresult = []
-    for j in range(len(info)):
-        klinemodule = {
-            "date": 0,
-            "close": 0,
-            "high": 0,
-            "low": 0,
-            "open": 0,
-            "valume": 0
+
+    res = binance.IO('GET','/fapi/v1/ticker/price',body)
+    #print(res)
+
+    '''body = {
+        'symbol' : 'BTCUSDT',
+        'interval' : '5m',
+        'startTime' : str(1579503838*1000),
+        'limit' : str(10),
+    }
+    
+    res = binance.IO('GET','/fapi/v1/klines',body)
+    print(res)
+    '''
+    '''#获取历史K线
+    for i in range(len(symbol)):
+        body = {
+            "symbol":symbol[i],
+            "interval":interval,
+            'endTime':str(1682608436000),
+            "limit":limit
         }
-        klinemodule["date"] = str(info[j][0])
-        klinemodule["open"] = info[j][1]
-        klinemodule["high"] = info[j][2]
-        klinemodule["low"] = info[j][3]
-        klinemodule["close"] = info[j][4]
-        klinemodule["valume"] = info[j][5]
-        onesymbolresult.append(klinemodule)
-    result.append(onesymbolresult)
+        info = binance.IO('GET', '/fapi/v1/klines', body)
+        onesymbolresult = []
+        for j in range(len(info)):
+            klinemodule = {
+                "date": 0,
+                "close": 0,
+                "high": 0,
+                "low": 0,
+                "open": 0,
+                "valume": 0
+            }
+            klinemodule["date"] = str(info[j][0])
+            klinemodule["open"] = info[j][1]
+            klinemodule["high"] = info[j][2]
+            klinemodule["low"] = info[j][3]
+            klinemodule["close"] = info[j][4]
+            klinemodule["valume"] = info[j][5]
+            onesymbolresult.append(klinemodule)
+        result.append(onesymbolresult)
+    
+    title_name = ["date","close","high","low","open","valume"]
+    
+    file = open('crypto_data.csv', 'a', encoding='utf-8', newline='')
+    csv_writer = csv.DictWriter(file, fieldnames=list(result[0][i].keys()))
+    csv_writer.writeheader()
+    for i in range(len(result[0])):
+        csv_writer.writerow(result[0][i])
+        #print(result[0][i])
+    file.close()'''
 
-title_name = ["date","close","high","low","open","valume"]
-
-file = open('crypto_data.csv', 'a', encoding='utf-8', newline='')
-csv_writer = csv.DictWriter(file, fieldnames=list(result[0][i].keys()))
-csv_writer.writeheader()
-for i in range(len(result[0])):
-    csv_writer.writerow(result[0][i])
-    #print(result[0][i])
-file.close()'''
-
-'''
-#GET请求示例:查看余额
-body = {"timestamp": f"{int(time.time() * 1000)}"}
-info = binance.IO('GET','/fapi/v2/balance',body)
-print(info)
-
-#POST请求示例:调整杠杆倍数
-body = {
-    "symbol":"BTCUSDT",
-    "leverage":int(10),
-    "timestamp": f"{int(time.time() * 1000)}"
-}
-info  = binance.IO('POST','/fapi/v1/leverage',body)
-print(info)'''
+    '''
+    #GET请求示例:查看余额
+    body = {"timestamp": f"{int(time.time() * 1000)}"}
+    info = binance.IO('GET','/fapi/v2/balance',body)
+    print(info)
+    
+    #POST请求示例:调整杠杆倍数
+    body = {
+        "symbol":"BTCUSDT",
+        "leverage":int(10),
+        "timestamp": f"{int(time.time() * 1000)}"
+    }
+    info  = binance.IO('POST','/fapi/v1/leverage',body)
+    print(info)'''
 
 
