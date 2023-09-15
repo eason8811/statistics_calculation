@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller
 import seaborn as sns
 from tenacity import *
 import urllib3
@@ -207,7 +207,7 @@ def minus(symbols,i):
         #plt.pause(0.2)
 
 binance = BINANCE()
-exchanges_info = binance.IO('GET','/fapi/v1/exchangeInfo',{})
+#exchanges_info = binance.IO('GET','/fapi/v1/exchangeInfo',{})
 
 symbols = []
 
@@ -231,7 +231,7 @@ df_data_org = pd.read_csv('kline_data_org.csv', index_col=0, encoding='gb2312') 
 symbols = list(df_data.columns)
 data = df_data.to_dict('list')
 data_matric = df_data.values
-data_org = df_data.to_dict('list')
+data_org = df_data_org.to_dict('list')
 df_data_eul = []
 df_data_corrlation = []
 df_data_r2 = []
@@ -247,13 +247,12 @@ for i in range(len(columns_value)):
     df_data_eul.append((column - np.mean(column)) / max(column))
 df_data_eul = pd.DataFrame(df_data_eul,index=columns_value,columns=columns_value).copy()
 
-'''
 #计算相关系数
 for i in tqdm(range(len(columns_value))):
     column = []
     for j in range(len(columns_value)):
-        '''a_diff = df_data[columns_value[i]] - np.mean(df_data[columns_value[i]])
-        p_diff = df_data[columns_value[j]] - np.mean(df_data[columns_value[j]])'''
+        a_diff = df_data[columns_value[i]] - np.mean(df_data[columns_value[i]])
+        p_diff = df_data[columns_value[j]] - np.mean(df_data[columns_value[j]])
         a_diff = df_data_org[columns_value[i]] - np.mean(df_data_org[columns_value[i]])
         p_diff = df_data_org[columns_value[j]] - np.mean(df_data_org[columns_value[j]])
         numerator = np.sum(a_diff * p_diff)
@@ -262,8 +261,24 @@ for i in tqdm(range(len(columns_value))):
         column.append(sy_i_minus_sy_j)
     df_data_corrlation.append(column)
 df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
-
 '''
+#对y-x进行一阶单整平稳性检验
+for i in tqdm(range(len(columns_value))):
+    column = []
+    for j in range(len(columns_value)):
+        y = np.array(df_data_org.loc[:,columns_value[i]])
+        x = np.array(df_data_org.loc[:,columns_value[j]])
+        y_x = y-x
+        if y_x[0] != 0.0:
+            adf_result = adfuller(y_x)
+        else:
+            adf_result = [10e7]
+
+        column.append(-adf_result[0])
+    df_data_corrlation.append(column)
+df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
+'''
+
 #线性拟合并计算R2和斜率a
 index = df_data.index
 for i in range(len(columns_value)):
@@ -358,7 +373,6 @@ for i in range(len(symbol_pairs)):
     plt.plot(data_symbol_minus_list,'red')
     plt.plot(data_org[symbol_pairs[i][0]])
     plt.plot(data_org[symbol_pairs[i][1]])
-
     #plt.plot(avg, "-")
     #plt.plot(var, "*")
     plt.savefig(f'D:\\学校文件\\Python\\fig\\{symbol_pairs[i][0]} - {symbol_pairs[i][1]}.png')

@@ -58,9 +58,9 @@ class Position:
         else:
             return 0
 
-symbol_pairs = [['EOSUSDT', 'MANAUSDT'], ['HOOKUSDT', 'REEFUSDT'], ['HOOKUSDT', 'ALICEUSDT'], ['REEFUSDT', 'ALICEUSDT'], ['DASHUSDT', 'HOTUSDT'], ['DASHUSDT', 'ALICEUSDT'], ['MANAUSDT', 'GMTUSDT'], ['MANAUSDT', 'SANDUSDT'], ['MANAUSDT', 'PEOPLEUSDT'], ['HOTUSDT', 'ALICEUSDT'], ['HOTUSDT', 'LRCUSDT'], ['HOTUSDT', 'LUNA2USDT'], ['MINAUSDT', 'ONEUSDT'], ['IOSTUSDT', 'ICXUSDT'], ['SPELLUSDT', 'DARUSDT'], ['ONEUSDT', 'LRCUSDT'], ['DARUSDT', 'LRCUSDT'], ['ALICEUSDT', 'PEOPLEUSDT'], ['ALICEUSDT', 'LRCUSDT'], ['LRCUSDT', 'LUNA2USDT']]
+#symbol_pairs = [['ANKRUSDT', 'XEMUSDT'], ['ICPUSDT', 'BALUSDT'], ['CTSIUSDT', 'ICXUSDT'], ['CTSIUSDT', 'AGIXUSDT'], ['CTSIUSDT', 'CELOUSDT'], ['GTCUSDT', 'RLCUSDT'], ['CVXUSDT', 'BALUSDT'], ['JOEUSDT', 'BELUSDT'], ['MANAUSDT', '1INCHUSDT'], ['BELUSDT', 'CELOUSDT'], ['NEARUSDT', 'ALICEUSDT'], ['NEARUSDT', 'BANDUSDT'], ['ZILUSDT', 'XEMUSDT'], ['ZILUSDT', 'SKLUSDT'], ['PEOPLEUSDT', 'XEMUSDT'], ['PEOPLEUSDT', 'SKLUSDT'], ['CELRUSDT', 'SKLUSDT'], ['SUSHIUSDT', 'API3USDT'], ['ENJUSDT', 'CELOUSDT'], ['ROSEUSDT', 'GALAUSDT']]
 
-#symbol_pairs = [['ALGOUSDT', 'FLMUSDT']]#['ALGOUSDT', 'FLMUSDT'], ['MANAUSDT', 'KAVAUSDT'],['MAVUSDT', 'GMTUSDT'],['ZECUSDT', 'NEOUSDT']
+symbol_pairs = [['CVXUSDT', 'BALUSDT']]
 period = 1000
 
 #处理symbols
@@ -244,11 +244,11 @@ for i in range(len(symbol_pairs)):
     plt.clf()
     plt.plot(consq,linewidth=1)
     #plt.plot(np.ones(2880) * consq_mean)
-    plt.plot(np.ones(len(consq)) * consq[0])
-    plt.plot(np.ones(len(consq)) * 0.3 * consq_std + consq[0])
-    plt.plot(np.ones(len(consq)) * (-0.3) * consq_std + consq[0])
-    plt.plot(np.ones(len(consq)) * 2 * 0.3 * consq_std + consq[0])
-    plt.plot(np.ones(len(consq)) * 2 * (-0.3) * consq_std + consq[0])
+    plt.plot(np.ones(len(consq)) * consq_mean)
+    plt.plot(np.ones(len(consq)) * 0.3 * consq_std + consq_mean)
+    plt.plot(np.ones(len(consq)) * (-0.3) * consq_std + consq_mean)
+    plt.plot(np.ones(len(consq)) * 9 * 0.3 * consq_std + consq_mean)
+    plt.plot(np.ones(len(consq)) * 9 * (-0.3) * consq_std + consq_mean)
     #consq_mean = 0.00157777
     #plt.plot(np.arange(2880),(profit_line - np.mean(profit_line)) / np.std(profit_line)/100)
     #plt.plot(np.arange(2880), (amount_list_test - np.mean(amount_list_test)) / max(amount_list_test)/100)
