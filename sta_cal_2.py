@@ -260,6 +260,7 @@ for i in tqdm(range(len(columns_value))):
         column.append(sy_i_minus_sy_j)
     df_data_corrlation.append(column)
 df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
+
 '''
 #线性拟合并计算R2和斜率a
 index = df_data.index
@@ -304,15 +305,15 @@ for i in range(len(corr_matric)):
         if correlate == {} :
             correlate[f"{symbols[i]}|{symbols[j]}"] = corr_matric[i][j]
         else:
-            if len(correlate.keys()) < 10:
+            if len(correlate.keys()) < 20:
                 for n in range(len(correlate.keys())):
                     if corr_matric[i][j] > correlate[list(correlate.keys())[n]]:
                     #if corr_matric[i][j] > -0.05 :
                         correlate[f"{symbols[i]}|{symbols[j]}"] = corr_matric[i][j]
                         break
-            elif len(correlate) == 10:
+            elif len(correlate) == 20:
                 isBreak = False
-                for n in range(5):
+                for n in range(20):
                     if corr_matric[i][j] > correlate[list(correlate.keys())[n]]:
                     #if corr_matric[i][j] > -0.05:
                         value = min(list(correlate.values()))
@@ -352,10 +353,10 @@ for i in range(len(symbol_pairs)):
     var = np.ones(len(data_symbol_minus_list)) * np.var(data_symbol_minus_list, ddof=1)
     data_symbol_minus[f'{symbol_pairs[i][0]} - {symbol_pairs[i][1]}'] = data_symbol_minus_list
     plt.clf()
-    plt.plot(data_symbol_minus_list)
+    plt.plot(data_symbol_minus_list,'red')
     plt.plot(data[symbol_pairs[i][0]])
     plt.plot(data[symbol_pairs[i][1]])
-    sns.heatmap(df_data_corrlation,annot=False)
+
     #plt.plot(avg, "-")
     #plt.plot(var, "*")
     plt.savefig(f'D:\\学校文件\\Python\\fig\\{symbol_pairs[i][0]} - {symbol_pairs[i][1]}.png')
@@ -365,7 +366,8 @@ for i in range(len(symbol_pairs)):
     print(f"VAR {symbol_pairs[i][0]} - {symbol_pairs[i][1]} = {var[0]}")
     '''result = sm.tsa.stattools.coint(df_data_org[symbol_pairs[i][0]], df_data_org[symbol_pairs[i][1]])
     print(f"result = {result}\n")'''
-
+    plt.clf()
+    sns.heatmap(df_data_corrlation, annot=False)
     # plt.pause(0.2)
 plt.show()
 
