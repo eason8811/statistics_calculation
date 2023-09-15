@@ -252,8 +252,10 @@ df_data_eul = pd.DataFrame(df_data_eul,index=columns_value,columns=columns_value
 for i in tqdm(range(len(columns_value))):
     column = []
     for j in range(len(columns_value)):
-        a_diff = df_data[columns_value[i]] - np.mean(df_data[columns_value[i]])
-        p_diff = df_data[columns_value[j]] - np.mean(df_data[columns_value[j]])
+        '''a_diff = df_data[columns_value[i]] - np.mean(df_data[columns_value[i]])
+        p_diff = df_data[columns_value[j]] - np.mean(df_data[columns_value[j]])'''
+        a_diff = df_data_org[columns_value[i]] - np.mean(df_data_org[columns_value[i]])
+        p_diff = df_data_org[columns_value[j]] - np.mean(df_data_org[columns_value[j]])
         numerator = np.sum(a_diff * p_diff)
         denominator = np.sqrt(np.sum(a_diff ** 2)) * np.sqrt(np.sum(p_diff ** 2))
         sy_i_minus_sy_j = numerator / denominator
