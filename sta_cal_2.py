@@ -349,15 +349,15 @@ print('\n')
 for i in range(len(symbol_pairs)):
     print(f'{round(i / len(symbol_pairs) * 100, 3)}%')
     data_symbol_minus_list = []
-    for n in range(len(data[symbol_pairs[i][0]])):
-        data_symbol_minus_list.append(data[symbol_pairs[i][0]][n] - data[symbol_pairs[i][1]][n])
+    for n in range(len(data_org[symbol_pairs[i][0]])):
+        data_symbol_minus_list.append(data_org[symbol_pairs[i][0]][n] - data_org[symbol_pairs[i][1]][n])
     avg = np.ones(len(data_symbol_minus_list)) * np.average(data_symbol_minus_list)
     var = np.ones(len(data_symbol_minus_list)) * np.var(data_symbol_minus_list, ddof=1)
     data_symbol_minus[f'{symbol_pairs[i][0]} - {symbol_pairs[i][1]}'] = data_symbol_minus_list
     plt.clf()
     plt.plot(data_symbol_minus_list,'red')
-    plt.plot(data[symbol_pairs[i][0]])
-    plt.plot(data[symbol_pairs[i][1]])
+    plt.plot(data_org[symbol_pairs[i][0]])
+    plt.plot(data_org[symbol_pairs[i][1]])
 
     #plt.plot(avg, "-")
     #plt.plot(var, "*")
