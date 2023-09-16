@@ -1,14 +1,17 @@
-from binance_API_USDT import BINANCE
 import csv
 import time
-import requests
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-from tenacity import *
+import requests
 import urllib3
 from statsmodels.tsa.stattools import adfuller
+from tenacity import *
+from tqdm import tqdm
+
+from binance_API_USDT import BINANCE
+
 urllib3.disable_warnings()
 s = requests.session()
 s.keep_alive = False
