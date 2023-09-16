@@ -130,10 +130,10 @@ class BINANCE:
             response = requests.get(url=f'https://fapi.binance.com{str(request_path)}',
                                     headers=header).json()
             return response
-
+global binance
+binance = BINANCE()
 if __name__ == "__main__":
-    global binance
-    binance = BINANCE()
+
 
     #symbol = ['BTCUSDT','ETHUSDT','BNBUSDT','LTCUSDT','EOSUSDT','ATOMUSDT','IOTXUSDT','XRPUSDT'] # len = 8
     symbol = ['BTCUSDT']
