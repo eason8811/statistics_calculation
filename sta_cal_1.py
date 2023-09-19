@@ -131,7 +131,7 @@ headers_list = [
     }
 ]
 @retry(stop=stop_after_delay(15))
-def get_info(symbol = 'BTCUSDT',limit = 1500):
+def get_info(symbol = 'BTCUSDT',limit = 1500,endTime = int(time.time()*1000)):
     global binance
     binance = BINANCE()
     interval = "15m"
@@ -139,7 +139,6 @@ def get_info(symbol = 'BTCUSDT',limit = 1500):
     output = []
     #klines = []
     title_name = ['date', 'open', 'high', 'low', 'close']
-    endTime = int(time.time()*1000)
     while limit-1500 > 0:
         klines = []
         number = 0
@@ -230,9 +229,12 @@ data_matric = []
 data_org = {}
 kline_num = int(2880*5)
 i = 0
+endTime = int(time.time()*1000)
 for n in tqdm(range(len(symbols))):
     #print(f'{round(i/len(symbols)*100,3)}%')
-    get_info(symbols[i], kline_num)
+    print("爬取......")
+    get_info(symbols[i], kline_num,endTime)
+    print("清洗......")
     data_symbol = pd.read_csv('kline_data.csv', index_col=0, encoding='gb2312') # gb2312
     data_symbol_close = data_symbol['close'].copy()
     if (len(data_symbol_close) < kline_num) and (i < len(symbols)):
@@ -240,7 +242,7 @@ for n in tqdm(range(len(symbols))):
         continue
     data_symbol_close_rate = []
     data_symbol_close_rate2one = []
-    for j in range(len(data_symbol_close)):
+    for j in tqdm(range(len(data_symbol_close))):
         if j == 0:
             data_symbol_close_rate.append(0.0)
         else:
@@ -249,7 +251,8 @@ for n in tqdm(range(len(symbols))):
 
     #归一化
     j = 0
-    for j in range(len(data_symbol_close_rate)):
+    print("数据归一化......")
+    for j in tqdm(range(len(data_symbol_close_rate))):
         Max = max(data_symbol_close_rate)
         Min = min(data_symbol_close_rate)
         if Max-Min == 0 :
