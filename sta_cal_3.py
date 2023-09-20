@@ -73,8 +73,8 @@ print(symbol_pairs_after)
 print('\n\n')
 
 #csv读取所有数据
-df_data = pd.read_csv('kline_data_symbol_close_rate2one.csv', index_col=0, encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
-df_data_org = pd.read_csv('kline_data_org.csv', index_col=0, encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
+df_data = pd.read_csv('kline_data_symbol_close_rate2one.csv', encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
+df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
 symbols = list(df_data.columns)
 data = df_data.to_dict('list')
 data_matric = df_data.values
