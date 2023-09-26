@@ -59,9 +59,9 @@ class Position:
         else:
             return 0
 
-symbol_pairs = [['CHZUSDT', 'CTSIUSDT'], ['CFXUSDT', 'IDUSDT'], ['CTSIUSDT', 'ONTUSDT'], ['CTSIUSDT', 'BATUSDT'], ['CTSIUSDT', 'DARUSDT'], ['HOOKUSDT', 'RLCUSDT'], ['GTCUSDT', 'RLCUSDT'], ['ALPHAUSDT', 'IDUSDT'], ['ALPHAUSDT', '1000LUNCUSDT'], ['IDUSDT', 'MANAUSDT'], ['IDUSDT', 'FTMUSDT'], ['IDUSDT', 'CTKUSDT'], ['IDUSDT', 'SANDUSDT'], ['IDUSDT', 'ENJUSDT'], ['IDUSDT', 'BNXUSDT'], ['RLCUSDT', 'ALICEUSDT'], ['RLCUSDT', 'LUNA2USDT'], ['ZILUSDT', 'XEMUSDT'], ['PEOPLEUSDT', 'XEMUSDT'], ['SUSHIUSDT', 'API3USDT']]
+#symbol_pairs = [['EOSUSDT', 'MATICUSDT'], ['EOSUSDT', 'FLOWUSDT'], ['BATUSDT', 'ZRXUSDT'], ['NEOUSDT', 'AXSUSDT'], ['NEOUSDT', 'ARUSDT'], ['ZILUSDT', 'XEMUSDT'], ['SXPUSDT', 'MINAUSDT'], ['WAVESUSDT', 'SNXUSDT'], ['ENJUSDT', 'RDNTUSDT'], ['BELUSDT', 'CELOUSDT'], ['AXSUSDT', 'ARUSDT'], ['1INCHUSDT', 'MANAUSDT'], ['ANKRUSDT', 'XEMUSDT'], ['LITUSDT', 'PHBUSDT'], ['XEMUSDT', 'TUSDT'], ['ALICEUSDT', 'GTCUSDT'], ['CELOUSDT', 'GMTUSDT'], ['KLAYUSDT', 'WOOUSDT'], ['CTSIUSDT', 'WOOUSDT'], ['CTSIUSDT', 'DARUSDT']]
 
-#symbol_pairs = [['IDUSDT', 'SANDUSDT']]
+symbol_pairs = [['ENJUSDT', 'RDNTUSDT']]  #[['BATUSDT', 'ZRXUSDT'],['ZILUSDT', 'XEMUSDT'],['ENJUSDT', 'RDNTUSDT'],['AXSUSDT', 'ARUSDT']]
 period = 1000
 
 #处理symbols
@@ -79,7 +79,7 @@ df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312').loc[:,symbol_
 symbols = list(df_data.columns)
 data = df_data.to_dict('list')
 data_matric = df_data.values
-data_org = df_data.to_dict('list')
+data_org = df_data_org.to_dict('list')
 data_org_2_one = {}
 for i in range(len(data_org.keys())):
     data_symbol = data_org[list(data_org.keys())[i]]
@@ -128,13 +128,13 @@ for i in range(len(symbol_pairs)):
     consq_std = np.std(consq)
     consq_mean = np.mean(consq)
 
-    print('='*20)
+    print('*'*20)
     print(f"param = {after_adjust_result_params}")
     print(f'consq[0] = {consq[0]}')
     print(f'consq_mean = {consq_mean}')
     print((f'consq_std = {consq_std}'))
     print(f'result = {adf_consq}')
-    print(f'dfgls = {dfgls_consq}')
+    print(f'{dfgls_consq}')
     print('\n')
 
     plt.clf()

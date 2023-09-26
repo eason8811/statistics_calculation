@@ -238,7 +238,7 @@ df_data_corrlation = []
 df_data_r2 = []
 df_data_a = []
 df_data_p = []
-columns_value = df_data.columns.values
+columns_value = df_data_org.columns.values
 '''#计算欧氏距离
 for i in range(len(columns_value)):
     column = []
