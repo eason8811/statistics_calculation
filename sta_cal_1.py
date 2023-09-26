@@ -232,9 +232,7 @@ i = 0
 endTime = int(time.time()*1000)
 for n in tqdm(range(len(symbols))):
     #print(f'{round(i/len(symbols)*100,3)}%')
-    print("爬取......")
     get_info(symbols[i], kline_num,endTime)
-    print("清洗......")
     data_symbol = pd.read_csv('kline_data.csv', index_col=0, encoding='gb2312') # gb2312
     data_symbol_close = data_symbol['close'].copy()
     if (len(data_symbol_close) < kline_num) and (i < len(symbols)):
@@ -242,14 +240,14 @@ for n in tqdm(range(len(symbols))):
         continue
     data_symbol_close_rate = []
     data_symbol_close_rate2one = []
-    for j in tqdm(range(len(data_symbol_close))):
+    for j in range(len(data_symbol_close)):
         if j == 0:
             data_symbol_close_rate.append(0.0)
         else:
             data_symbol_close_rate.append((data_symbol_close[data_symbol_close.index[j]]-data_symbol_close[data_symbol_close.index[j-1]])
                                           / data_symbol_close[data_symbol_close.index[j-1]] + data_symbol_close_rate[-1])
 
-    #归一化
+    '''#归一化
     j = 0
     print("数据归一化......")
     for j in tqdm(range(len(data_symbol_close_rate))):
@@ -261,7 +259,7 @@ for n in tqdm(range(len(symbols))):
             print(symbols[i])
         mean = sum(data_symbol_close_rate) / len(data_symbol_close_rate)
         Max1 = np.max(np.abs(data_symbol_close_rate))
-        data_symbol_close_rate2one.append((data_symbol_close_rate[j] - mean) / Max1)
+        data_symbol_close_rate2one.append((data_symbol_close_rate[j] - mean) / Max1)'''
     result = adfuller(data_symbol_close)
     if result[0] < result[4]['1%']:
         symbols.remove(symbols[i])
