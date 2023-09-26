@@ -2,6 +2,7 @@ from binance_API_USDT import BINANCE
 import csv
 import time
 import requests
+from arch.unitroot import DFGLS
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -228,7 +229,7 @@ print('=================================================')
 #df_data_org = pd.DataFrame(data_org).copy()
 df_data = pd.read_csv('kline_data_symbol_close_rate2one.csv', encoding='gb2312') # gb2312
 df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312') # gb2312
-symbols = list(df_data.columns)
+symbols = list(df_data_org.columns)
 data = df_data.to_dict('list')
 data_matric = df_data.values
 data_org = df_data_org.to_dict('list')
@@ -261,7 +262,7 @@ for i in tqdm(range(len(columns_value))):
         column.append(sy_i_minus_sy_j)
     df_data_corrlation.append(column)
 df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
-'''
+
 #对y-x进行一阶单整平稳性检验
 for i in tqdm(range(len(columns_value))):
     column = []
@@ -277,7 +278,7 @@ for i in tqdm(range(len(columns_value))):
         column.append(-adf_result[0])
     df_data_corrlation.append(column)
 df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
-'''
+
 
 #线性拟合并计算R2和斜率a
 index = df_data.index
@@ -308,6 +309,23 @@ for i in tqdm(range(len(columns_value))):
 df_data_p = pd.DataFrame(df_data_p,index=columns_value,columns=columns_value)
 print(df_data_p)
 df_data_p.to_csv("df_data_p.csv",sep=',')'''
+
+#进行DFGLS平稳性检验
+for i in tqdm(range(len(columns_value))):
+    column = []
+    for j in range(len(columns_value)):
+        y = np.array(df_data_org.loc[:,columns_value[i]])
+        x = np.array(df_data_org.loc[:,columns_value[j]])
+        y_x = y-x
+        if y_x[0] != 0.0:
+            dfgls_result = DFGLS(y_x).stat
+        else:
+            dfgls_result = -1
+
+        column.append(-dfgls_result)
+    df_data_corrlation.append(column)
+df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
+
 df_data_corrlation.to_csv("df_data_p.cav",sep=',')
 #corr_matric = np.array(df_data_eul)
 #corr_matric = np.array(df_data_r2)

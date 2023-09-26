@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
+from arch.unitroot import DFGLS
 
 
 long = 1
@@ -58,9 +59,9 @@ class Position:
         else:
             return 0
 
-#symbol_pairs = [['ANKRUSDT', 'XEMUSDT'], ['ICPUSDT', 'BALUSDT'], ['CTSIUSDT', 'ICXUSDT'], ['CTSIUSDT', 'AGIXUSDT'], ['CTSIUSDT', 'CELOUSDT'], ['GTCUSDT', 'RLCUSDT'], ['CVXUSDT', 'BALUSDT'], ['JOEUSDT', 'BELUSDT'], ['MANAUSDT', '1INCHUSDT'], ['BELUSDT', 'CELOUSDT'], ['NEARUSDT', 'ALICEUSDT'], ['NEARUSDT', 'BANDUSDT'], ['ZILUSDT', 'XEMUSDT'], ['ZILUSDT', 'SKLUSDT'], ['PEOPLEUSDT', 'XEMUSDT'], ['PEOPLEUSDT', 'SKLUSDT'], ['CELRUSDT', 'SKLUSDT'], ['SUSHIUSDT', 'API3USDT'], ['ENJUSDT', 'CELOUSDT'], ['ROSEUSDT', 'GALAUSDT']]
+symbol_pairs = [['CHZUSDT', 'CTSIUSDT'], ['CFXUSDT', 'IDUSDT'], ['CTSIUSDT', 'ONTUSDT'], ['CTSIUSDT', 'BATUSDT'], ['CTSIUSDT', 'DARUSDT'], ['HOOKUSDT', 'RLCUSDT'], ['GTCUSDT', 'RLCUSDT'], ['ALPHAUSDT', 'IDUSDT'], ['ALPHAUSDT', '1000LUNCUSDT'], ['IDUSDT', 'MANAUSDT'], ['IDUSDT', 'FTMUSDT'], ['IDUSDT', 'CTKUSDT'], ['IDUSDT', 'SANDUSDT'], ['IDUSDT', 'ENJUSDT'], ['IDUSDT', 'BNXUSDT'], ['RLCUSDT', 'ALICEUSDT'], ['RLCUSDT', 'LUNA2USDT'], ['ZILUSDT', 'XEMUSDT'], ['PEOPLEUSDT', 'XEMUSDT'], ['SUSHIUSDT', 'API3USDT']]
 
-symbol_pairs = [['CVXUSDT', 'BALUSDT']]
+#symbol_pairs = [['IDUSDT', 'SANDUSDT']]
 period = 1000
 
 #处理symbols
@@ -99,7 +100,8 @@ for i in range(len(symbol_pairs)):
     consq = df_data_org.loc[:,symbol_pairs[i][0]].values - after_adjust_result_params * df_data_org.loc[:,symbol_pairs[i][1]].values
     #consq = y - x * result.params[0]
     consq_2_one = (consq - np.mean(consq)) / np.std(consq)
-    adf_consq = adfuller(consq)
+    adf_consq = adfuller(consq,regression='c')
+    dfgls_consq = DFGLS(consq)
     if adf_consq[0] < adf_consq[4]['1%']:
         print(f'{symbol_pairs[i][0]} - {symbol_pairs[i][1]} 是平稳曲线的把握 99%')
         if adf_consq[1] < 0.05:
@@ -131,111 +133,9 @@ for i in range(len(symbol_pairs)):
     print(f'consq[0] = {consq[0]}')
     print(f'consq_mean = {consq_mean}')
     print((f'consq_std = {consq_std}'))
+    print(f'result = {adf_consq}')
+    print(f'dfgls = {dfgls_consq}')
     print('\n')
-
-    amount_list_test = []
-    profit_line = []
-    initial_fund = 1
-    position_long = Position()
-    position_short = Position()
-    param_ratio = after_adjust_result_params
-    initial_price = consq[0]
-    interval_ratio = 0.3
-    each_position_ratio = 0.05
-    each_position = initial_fund * each_position_ratio
-
-    #当前仓位数量
-    now_amount = 0
-    y_past_price = 0
-    x_past_price = 0
-    for n in range(len(consq_2_one)):
-        y_price = df_data_org.loc[:, symbol_pairs[i][0]].values[n]
-        x_price = df_data_org.loc[:, symbol_pairs[i][1]].values[n]
-        #计算应有仓位
-            #计算余数
-        remain = ((consq[n] - initial_price) / consq_std)%interval_ratio
-        amount = 0
-            #计算仓位个数
-        if consq[n] > initial_price:
-            #价格高于初始价格，做空组合
-            amount = int(((consq[n] - initial_price)/consq_std - remain) / interval_ratio)
-        elif consq[n] < initial_price:
-            #价格低于初始价格，做多组合
-            amount = int(((consq[n] - initial_price)/consq_std + remain) / interval_ratio)
-        amount_list_test.append(amount)
-        if abs(amount) < abs(now_amount) or abs(amount) < abs(now_amount) :
-            #平仓
-            if amount > 0 :
-                #平 y 空仓，平 x 多仓
-                roi = (x_price * y_past_price - x_past_price * y_price) / x_past_price / y_past_price
-                if len(profit_line) == 0:
-                    profit_line.append(roi)
-                else:
-                    profit_line.append(profit_line[-1] + roi)
-                now_amount = amount
-            elif amount < 0 :
-                #平 y 多仓，平 x 空仓
-                roi = (x_price * y_past_price - x_past_price * y_price) / x_past_price / y_past_price
-                if len(profit_line) == 0:
-                    profit_line.append(roi)
-                else:
-                    profit_line.append(profit_line[-1] + roi)
-                now_amount = amount
-            else:
-                if amount_list_test[-2] > 0:
-                    # 平 y 空仓，平 x 多仓
-                    roi = (x_price * y_past_price - x_past_price * y_price) / x_past_price / y_past_price
-                    if len(profit_line) == 0:
-                        profit_line.append(roi)
-                    else:
-                        profit_line.append(profit_line[-1] + roi)
-                    now_amount = amount
-                elif amount_list_test[-2] < 0:
-                    # 平 y 多仓，平 x 空仓
-                    roi = (x_price * y_past_price - x_past_price * y_price) / x_past_price / y_past_price
-                    if len(profit_line) == 0:
-                        profit_line.append(roi)
-                    else:
-                        profit_line.append(profit_line[-1] + roi)
-                    now_amount = amount
-        elif abs(amount) > abs(now_amount) or abs(amount) > abs(now_amount) :
-            #开仓
-            if amount > 0:
-                # 开 y 空仓，开 x 多仓
-                y_past_price = y_price
-                x_past_price = x_price
-                now_amount = amount
-                if len(profit_line) == 0:
-                    profit_line.append(0)
-                else:
-                    profit_line.append(profit_line[-1])
-            elif amount < 0:
-                # 开 y 多仓，开 x 空仓
-                y_past_price = y_price
-                x_past_price = x_price
-                now_amount = amount
-                if len(profit_line) == 0:
-                    profit_line.append(0)
-                else:
-                    profit_line.append(profit_line[-1])
-        else:
-            if len(profit_line) == 0:
-                profit_line.append(0)
-            else:
-                profit_line.append(profit_line[-1])
-        #更新initial_fund
-        '''if amount > 0:
-            profit_short = position_short.check_pos_profit(y_price)
-            profit_long = position_long.check_pos_profit(x_price)
-            initial_fund = initial_fund + profit_short + profit_long
-            profit_line.append(initial_fund)
-        elif amount < 0:
-            profit_long = position_long.check_pos_profit(y_price)
-            profit_short = position_short.check_pos_profit(x_price)
-            initial_fund = initial_fund + profit_short + profit_long
-            profit_line.append(initial_fund)
-        elif amount == 0:
-            profit_line.append(initial_fund)'''
 
     plt.clf()
     plt.scatter(x,y,marker='.',s=10)
