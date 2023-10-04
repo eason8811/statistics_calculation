@@ -306,7 +306,7 @@ for i in tqdm(range(len(columns_value))):
         result = sm.tsa.stattools.coint(np.reshape(df_data_org[columns_value[i]],-1),np.reshape(df_data_org[columns_value[j]],-1))
         column_p.append(-result[1])
     df_data_p.append(column_p)
-df_data_p = pd.DataFrame(df_data_p,index=columns_value,columns=columns_value)
+df_data_p = pd.DataFrame(df_data_p,index=columns_value,columns=columns_value)my
 print(df_data_p)
 df_data_p.to_csv("df_data_p.csv",sep=',')'''
 

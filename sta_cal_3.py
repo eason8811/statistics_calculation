@@ -10,55 +10,6 @@ long = 1
 short = -1
 empty = 0
 
-class Position:
-    def __init__(self,side= empty,position= 0,entry_time= 0,entry_price= 0,exit_time= 0,exit_price= 0):
-        self.side = side
-        self.position = position
-        self.entry_price = entry_price
-        self.entry_time = entry_time
-        self.exit_time = exit_time
-        self.exit_price = exit_price
-    def open_pos(self,side,position,entry_time,entry_price):
-        #检查是否有仓位
-        if self.side == empty:
-            self.side = side
-            self.position = position
-            self.entry_price = entry_price
-            self.entry_time = entry_time
-        else:
-            #检查方向是否一致
-            if side != self.side:
-                print(f"仓位方向不一致，原仓位方向为{self.side}，开仓方向为{side}")
-                return None
-            else:
-                self.entry_price = (entry_price*position + self.entry_price*self.position) / (position+self.position)
-                self.position = self.position+position
-                self.entry_time = entry_time
-    def close_pos(self,position,exit_time,exit_price):
-        self.position = self.position - position
-        self.exit_time = exit_time
-        self.exit_price = exit_price
-        if self.side == short:
-            profit = (self.entry_price - self.exit_price) / self.entry_price * position
-            if self.position == 0.0:
-                self.side = empty
-            return profit
-        elif self.side == long:
-            profit = (self.exit_price - self.entry_price) / self.entry_price * position
-            if self.position == 0.0:
-                self.side = empty
-            return profit
-    def check_pos_profit(self,now_price):
-        if self.entry_price != 0:
-            if self.side == short:
-                profit = (self.entry_price - now_price) / self.entry_price * self.position
-                return profit
-            elif self.side == long:
-                profit = (now_price - self.entry_price) / self.entry_price * self.position
-                return profit
-        else:
-            return 0
-
 #symbol_pairs = [['EOSUSDT', 'MATICUSDT'], ['EOSUSDT', 'FLOWUSDT'], ['BATUSDT', 'ZRXUSDT'], ['NEOUSDT', 'AXSUSDT'], ['NEOUSDT', 'ARUSDT'], ['ZILUSDT', 'XEMUSDT'], ['SXPUSDT', 'MINAUSDT'], ['WAVESUSDT', 'SNXUSDT'], ['ENJUSDT', 'RDNTUSDT'], ['BELUSDT', 'CELOUSDT'], ['AXSUSDT', 'ARUSDT'], ['1INCHUSDT', 'MANAUSDT'], ['ANKRUSDT', 'XEMUSDT'], ['LITUSDT', 'PHBUSDT'], ['XEMUSDT', 'TUSDT'], ['ALICEUSDT', 'GTCUSDT'], ['CELOUSDT', 'GMTUSDT'], ['KLAYUSDT', 'WOOUSDT'], ['CTSIUSDT', 'WOOUSDT'], ['CTSIUSDT', 'DARUSDT']]
 
 symbol_pairs = [['ENJUSDT', 'RDNTUSDT']]  #[['BATUSDT', 'ZRXUSDT'],['ZILUSDT', 'XEMUSDT'],['ENJUSDT', 'RDNTUSDT'],['AXSUSDT', 'ARUSDT']]
@@ -68,7 +19,7 @@ period = 1000
 symbol_pairs_after = []
 for i in range(len(symbol_pairs)):
     symbol_pairs_after.extend(symbol_pairs[i])
-    
+
 symbol_pairs_after = list(set(symbol_pairs_after))
 print(symbol_pairs_after)
 print('\n\n')
