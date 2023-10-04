@@ -161,6 +161,7 @@ for i in range(99,len(x)):
         pos += 1
         temp.append(0.0)
 
+
     elif x_y[i] < MA_100[i-99] - 3 * std_100[i-99] and pos != 0:
         r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list, is_long=False) +
                  get_all_position_ROI(now_price=y[i], pos_list=posy_list, is_long=True))
