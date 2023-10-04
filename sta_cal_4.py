@@ -1,6 +1,7 @@
 import csv
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import requests
@@ -104,7 +105,7 @@ while 1:
         time.sleep(0.3)
     y = np.array(data_org[symbols[0]])
     x = np.array(data_org[symbols[1]])
-    y_x = y-x
+    y_x = (y-x)
     dfgls_consq = DFGLS(y_x)
     print('='*60)
     print(f'T-value = {dfgls_consq.stat}')
@@ -113,5 +114,8 @@ while 1:
     print('='*60)
     if dfgls_consq.stat > dfgls_consq.critical_values['1%'] or dfgls_consq.pvalue >= 0.01:
         print('警戒！平稳性即将越界！请及时查看！'*6)
-    time.sleep(15*60)
+    # plt.plot(y_x)
+    # plt.show()
+    for j in tqdm(range(3*60)):
+        time.sleep(1)
     check_times += 1
