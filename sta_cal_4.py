@@ -15,7 +15,6 @@ from binance_API_USDT import BINANCE
 urllib3.disable_warnings()
 s = requests.session()
 s.keep_alive = False
-
 @retry(stop=stop_after_delay(15))
 def get_info(symbol = 'BTCUSDT',limit = 1500,endTime = int(time.time()*1000)):
     global binance
