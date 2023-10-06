@@ -14,15 +14,22 @@ s = requests.session()
 s.keep_alive = False
 
 class Position:
-    def __init__(self, open_price :float, close_price :float = 0.0) -> None:
+    def __init__(self, open_price :float, close_price :float = 0.0, amount :float = 0.0, direction :int = 1) -> None:
         self.open_price = open_price
         self.close_price = close_price
-def get_all_position_ROI(now_price :float, pos_list :list, is_long :bool) -> float:
+        self.amount = amount
+        self.direction = direction
+    def get_one_roi(self,now_price :float) -> float:
+        if self.direction == 1:
+            return (now_price-self.open_price)/self.open_price * self.amount - 0*0.0004*self.amount
+        elif self.direction == -1:
+            return (self.open_price-now_price)/self.open_price * self.amount - 0*0.0004*self.amount
+def get_all_position_ROI(now_price :float, pos_list :list) -> float:
     roi = 0.0
     for pos in pos_list:
-        roi += (now_price - pos.open_price)/pos.open_price if is_long else (pos.open_price - now_price)/pos.open_price
+        roi += pos.get_one_roi(now_price)
     return roi
-#@retry(stop=stop_after_delay(15))
+@retry(stop=stop_after_delay(15))
 def get_info(symbol = 'BTCUSDT',limit = 1500,endTime = int(time.time()*1000)):
     global binance
     binance = BINANCE()
@@ -88,17 +95,20 @@ def get_info(symbol = 'BTCUSDT',limit = 1500,endTime = int(time.time()*1000)):
         # 3.写入数据(一次性写入多行)
         dictWriter.writerows(output)
 
-symbols = ['ETHUSDT','ETHUSDT_230929']
+symbols = ['BTCUSDT','BTCUSDT_231229']
 
 print(symbols)
 
 data = {}
 data_matric = []
 data_org = {}
-kline_num = int(90*24*4)
+kline_num = int(7*24*4)
 i = 0
-#endTime = int(time.time()*1000)
-endTime = 1695974400000
+endTime = int(time.time()*1000)
+#endTime = 1695974400000     #230929
+#endTime = 1688112000000     #230630
+#endTime = 1680249600000     #230331
+#endTime = 1672387200000     #221230
 for n in tqdm(range(len(symbols))):
     #print(f'{round(i/len(symbols)*100,3)}%')
     get_info(symbols[i], kline_num,endTime)
@@ -126,78 +136,154 @@ with open('kline_data_org.csv', 'w', encoding='utf-8', newline='') as file_obj:
         output.append(kline_of_symbol)
     dictWriter.writerows(output)
 
-df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312') # gb2312
-symbols = list(df_data_org.columns)
-y = np.array(df_data_org.loc[:,symbols[0]])
-x = np.array(df_data_org.loc[:,symbols[1]])
-MA_100 = []
-std_100 = []
-x_y = x-y
-for i in range(99,len(x)):
-    ma = np.mean(x_y[i-100+1:i])
-    st = np.std(x_y[i-100+1:i])
-    MA_100.append(ma)
-    std_100.append(st)
-MA_100 = np.array(MA_100)
-std_100 = np.array(std_100)
 
-revenew = 0
-result = []
-pos = 0
-posx_list = []
-posy_list = []
-open_index = 0
-close_index = 0
-temp = []
-total_pos_amount = 0
-for i in range(99,len(x)):
-    if x_y[i] > MA_100[i-99] + 1 * std_100[i-99]:
-        open_index = i if pos == 0 else open_index
-        posx = Position(x[i])
-        posy = Position(y[i])
-        posx_list.append(posx)
-        posy_list.append(posy)
-        total_pos_amount += 1
-        pos += 1
-        temp.append(0.0)
+def back_test(long_ma_period :int) -> None:
+    df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312') # gb2312
+    symbols = list(df_data_org.columns)
+    y = np.array(df_data_org.loc[:,symbols[0]])
+    x = np.array(df_data_org.loc[:,symbols[1]])
+    MA_100 = []
+    MA_long = []
+    #long_ma_period = 200
+    std_100 = []
+    x_y = x-y
+    for i in range(99,len(x)):
+        ma = np.mean(x_y[i-100+1:i])
+        st = np.std(x_y[i-100+1:i])
+        MA_100.append(ma)
+        std_100.append(st)
+    MA_100 = np.array(MA_100)
+    std_100 = np.array(std_100)
+
+    for i in range(long_ma_period-1,len(x)):
+        ma = np.mean(x_y[i-long_ma_period+1:i])
+        MA_long.append(ma)
+    MA_long = np.array(MA_long)
+
+    revenew = 0
+    result = []
+    pos = 0
+    posx_list = []
+    posy_list = []
+    open_index = 0
+    close_index = 0
+    temp = []
+    total_pos_amount = 0
+    max_pos_amount = 0
+    can_open = True
+    fee = 0
+    for i in range(long_ma_period-1,len(x)):
+        if x_y[i] >= 0:     # and MA_long[i-long_ma_period] >= MA_100[i-long_ma_period+len(MA_100)-len(MA_long)]
+            if x_y[i] > MA_100[i-99] + 1 * std_100[i-99] and can_open and len(posx_list) <= 5:
+                open_index = i if pos == 0 else open_index
+                posx = Position(x[i], amount= 34, direction= -1)
+                posy = Position(y[i], amount= 34, direction= 1)
+                posx_list.append(posx)
+                posy_list.append(posy)
+                total_pos_amount += 1
+                pos += 1
+                temp.append(0.0)
+                max_pos_amount = max(max_pos_amount,len(posx_list))
+                can_open = False
+
+            elif x_y[i] < MA_100[i-99] - 3 * std_100[i-99] and pos != 0:
+                r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
+                         get_all_position_ROI(now_price=y[i], pos_list=posy_list))
+                if r_all < 0:
+                    temp.append(r_all)
+                    continue
+                amount = posx_list[0].amount
+                fee -= (len(posx_list)+len(posy_list))*amount*0.0004*2
+                #print(fee)
+                close_index = i
+                temp.append(r_all)
+                posx_list.clear()
+                posy_list.clear()
+                pos = 0
+                can_open = True
+            elif pos != 0 :
+                r_all = (get_all_position_ROI(now_price= x[i],pos_list= posx_list) +
+                         get_all_position_ROI(now_price= y[i],pos_list= posy_list))
+                temp.append(r_all)
+            elif pos == 0:
+                temp.append(0.0)
+            if x_y[i] < MA_100[i-99] + 1 * std_100[i-99] and not can_open:
+                can_open = True
+        elif 0:
+            if x_y[i] < MA_100[i - 99] - 1 * std_100[i - 99] and can_open:
+                open_index = i if pos == 0 else open_index
+                posx = Position(x[i])
+                posy = Position(y[i])
+                posx_list.append(posx)
+                posy_list.append(posy)
+                total_pos_amount += 1
+                pos += 1
+                temp.append(0.0)
+                max_pos_amount = max(max_pos_amount, len(posx_list))
+                can_open = False
+
+            elif x_y[i] > MA_100[i - 99] + 3 * std_100[i - 99] and pos != 0:
+                r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
+                         get_all_position_ROI(now_price=y[i], pos_list=posy_list))
+                if r_all < 0:
+                    temp.append(r_all)
+                    continue
+                close_index = i
+                temp.append(r_all)
+                posx_list.clear()
+                posy_list.clear()
+                pos = 0
+                can_open = True
+            elif pos != 0:
+                r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
+                         get_all_position_ROI(now_price=y[i], pos_list=posy_list))
+                temp.append(r_all)
+            elif pos == 0:
+                temp.append(0.0)
+            if x_y[i] < MA_100[i - 99] + 1 * std_100[i - 99] and not can_open:
+                can_open = True
+        else:
+            temp.append(0.0)
+
+    roi = 0
+    for i in range(len(temp)):
+        if temp[i] == 0 and temp[i-1] != 0:
+            roi += temp[i-1]
+        if temp[i] == 0:
+            result.append(roi)
+        else:
+            result.append(roi+temp[i])
 
 
-    elif x_y[i] < MA_100[i-99] - 3 * std_100[i-99] and pos != 0:
-        r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list, is_long=False) +
-                 get_all_position_ROI(now_price=y[i], pos_list=posy_list, is_long=True))
-        if r_all < 0:
-            continue
-        close_index = i
-        temp.append(r_all)
-        posx_list.clear()
-        posy_list.clear()
-        pos = 0
-    elif pos != 0 :
-        r_all = (get_all_position_ROI(now_price= x[i],pos_list= posx_list,is_long= False) +
-                 get_all_position_ROI(now_price= y[i],pos_list= posy_list,is_long= True))
-        temp.append(r_all)
-    elif pos == 0:
-        temp.append(0.0)
+    # plt.plot(y)
+    # plt.plot(x)
+    plt.plot(x_y)
+    plt.plot([i for i in range(99,len(x_y))],MA_100)
+    plt.plot([i for i in range(99,len(x_y))],MA_100 - std_100)
+    plt.plot([i for i in range(99,len(x_y))],MA_100 + std_100)
+    plt.plot([i for i in range(99,len(x_y))],MA_100 - 3*std_100)
+    plt.plot([i for i in range(99,len(x_y))],MA_100 + 3*std_100)
+    plt.plot([i for i in range(long_ma_period-1,len(x_y))],np.array(result)*100+300)
+    plt.plot([i for i in range(long_ma_period-1,len(x_y))],np.array(temp)*100+300)
+    #plt.plot([i for i in range(long_ma_period-1,len(x_y))],MA_long)
+    print(total_pos_amount)
+    print(max_pos_amount)
+    print('='*35)
+    print(f'long_ma_period = {long_ma_period}')
+    print(f'${round(result[-1] * 34, 3)}')
+    print(f'{round(result[-1] * 34/34/6/2*100, 3)}%')
+    print(f'${round(result[-1] * 34+fee, 3)}')
+    print(f'{round((result[-1] * 34+fee)/34/6/2*100, 3)}%')
+    print(f'{round(result[-1] * 34 /10 * 100, 3)}%')
+    print(f'{round((result[-1] * 34 + fee) / 10 * 100, 3)}%')
+    print('=' * 35)
+    plt.show()
+    # 6245.3
+    # 520.444%
+    # 208.127
+    # 17.344
+    # $3216.127
+    # 268.011%
 
-roi = 0
-for i in range(len(temp)):
-    if temp[i] == 0 and temp[i-1] != 0:
-        roi += temp[i-1]
-    if temp[i] == 0:
-        result.append(roi)
-    else:
-        result.append(roi+temp[i])
-
-
-# plt.plot(y)
-# plt.plot(x)
-plt.plot(x_y)
-plt.plot([i for i in range(99,len(x_y))],MA_100)
-plt.plot([i for i in range(99,len(x_y))],MA_100 - std_100)
-plt.plot([i for i in range(99,len(x_y))],MA_100 + std_100)
-plt.plot([i for i in range(99,len(x_y))],MA_100 - 2*std_100)
-plt.plot([i for i in range(99,len(x_y))],MA_100 + 2*std_100)
-plt.plot([i for i in range(99,len(x_y))],np.array(result))
-plt.plot([i for i in range(99,len(x_y))],np.array(temp))
-print(total_pos_amount)
-plt.show()
+for period in range(100,101):
+    back_test(period)
