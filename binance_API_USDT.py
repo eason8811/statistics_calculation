@@ -90,13 +90,14 @@ def dict2csv(dic, filename):
         csv_writer.writerow(dic1)'''
     csv_writer.writerow(dic)
     file.close()
-
-# apikey = 'i7F6rx3Tcz6eJlSVzBc4dpV6qyszCiCOIpSz7gv9mdyq9UjVizrlu2kkmlvUIJSw'
-# Secret_KEY = 'mwU7KCworFZ17WIOqRuGaRmtwT3nnUDBhtg8HQf9CHFB7KVSxev0Rwym5mgfWjDx'
+a = (f'123123'
+     f'123')
+apikey = 'iKSaIGVPKxz55GmSyqlUlfZZQ7dQaba8Ndwi4TOnMFKfLqvyG1YnMcPh1kupTS6V'
+Secret_KEY = 'HVoir6f7YPaUtuWbCAPKq7Q3lWmfQHQA1xu9lCDxFWlZB4fLbuji80ecuXAm4l59'
 
 #TW带单
-apikey = '88wdDD5VSsnOtxLwOBBXuovX1xDY35KkmPoZSbQBi3nmWPqCGSvx7gipopPZg0NU'
-Secret_KEY = 'SubmUiBDrnJGUuAEH6FZfEiivHIgen0yCzb6Ps3VDxDZ7yuRtsZ01woYOptnFvS4'
+# apikey = '88wdDD5VSsnOtxLwOBBXuovX1xDY35KkmPoZSbQBi3nmWPqCGSvx7gipopPZg0NU'
+# Secret_KEY = 'SubmUiBDrnJGUuAEH6FZfEiivHIgen0yCzb6Ps3VDxDZ7yuRtsZ01woYOptnFvS4'
 
 # 币安api接口
 class BINANCE:
