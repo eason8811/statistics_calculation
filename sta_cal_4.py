@@ -16,6 +16,7 @@ urllib3.disable_warnings()
 s = requests.session()
 s.keep_alive = False
 @retry(stop=stop_after_delay(15))
+
 def get_info(symbol = 'BTCUSDT',limit = 1500,endTime = int(time.time()*1000)):
     global binance
     binance = BINANCE()
@@ -81,19 +82,28 @@ def get_info(symbol = 'BTCUSDT',limit = 1500,endTime = int(time.time()*1000)):
         # 3.写入数据(一次性写入多行)
         dictWriter.writerows(output)
 
-symbols = ['ENJUSDT', 'RDNTUSDT']
+symbols = ['MANAUSDT', 'MINAUSDT']
 print(symbols)
 print(f"total calculate times = {len(symbols)*(len(symbols)-1)/2}")
 check_times = 1
-while 1:
-    data = {}
-    data_matric = []
-    data_org = {}
-    kline_num = int(2880*5)
-    i = 0
-    endTime = int(time.time()*1000)
+data = {}
+data_matric = []
+data_org = {}
+kline_num = int(2880*5)
+i = 0
+endTime = int(time.time()*1000)
+for n in tqdm(range(len(symbols))):
+    #print(f'{round(i/len(symbols)*100,3)}%')
+    get_info(symbols[i], kline_num,endTime)
+    data_symbol = pd.read_csv('kline_data.csv', index_col=0, encoding='gb2312') # gb2312
+    data_symbol_close = data_symbol['close'].copy()
+    if len(data_symbol_close) == kline_num:
+        data_org[symbols[i]] = list(data_symbol_close.values)
+    i = i + 1
+    time.sleep(0.3)
+def back_test(data_org,check_times,grid):
     print(f'第{check_times}次检查平稳性')
-    for n in tqdm(range(len(symbols))):
+    '''for n in tqdm(range(len(symbols))):
         #print(f'{round(i/len(symbols)*100,3)}%')
         get_info(symbols[i], kline_num,endTime)
         data_symbol = pd.read_csv('kline_data.csv', index_col=0, encoding='gb2312') # gb2312
@@ -101,7 +111,7 @@ while 1:
         if len(data_symbol_close) == kline_num:
             data_org[symbols[i]] = list(data_symbol_close.values)
         i = i + 1
-        time.sleep(0.3)
+        time.sleep(0.3)'''
     y = np.array(data_org[symbols[0]])
     x = np.array(data_org[symbols[1]])
     y_x = (y-x)
@@ -113,8 +123,66 @@ while 1:
     print('='*60)
     if dfgls_consq.stat > dfgls_consq.critical_values['1%'] or dfgls_consq.pvalue >= 0.01:
         print('警戒！平稳性即将越界！请及时查看！'*6)
-    # plt.plot(y_x)
-    # plt.show()
-    for j in tqdm(range(3*60)):
-        time.sleep(1)
+    plt.plot(y_x)
+    plt.show()
+    # for j in tqdm(range(3*60)):
+    #     time.sleep(1)
     check_times += 1
+    m = np.mean(y_x)
+    st = np.std(y_x)
+    each_roi = abs(grid*st/m)
+    consq_amount = m
+    touch_amount = 0
+    pair_list = []
+    total_pair_amount = 0
+    for n in range(len(y_x)):
+        if y_x[n]-consq_amount > grid*st:
+            consq_amount += grid*st
+            touch_amount += 1
+            if consq_amount not in pair_list:
+                pair_list.append(consq_amount)
+            elif consq_amount in pair_list:
+                pair_list.remove(consq_amount)
+                total_pair_amount += 1
+        elif consq_amount-y_x[n] > grid*st:
+            consq_amount -= grid*st
+            touch_amount += 1
+            if consq_amount not in pair_list:
+                pair_list.append(consq_amount)
+            elif consq_amount in pair_list:
+                pair_list.remove(consq_amount)
+                total_pair_amount += 1
+    return touch_amount,total_pair_amount,each_roi
+
+result = []
+result_pair = []
+result_each_roi = []
+for i in range(1,2):
+    touch_amount,total_pair_amount,each_roi = back_test(data_org,1,i/10000000)
+    result.append(touch_amount)
+    result_pair.append(total_pair_amount)
+    result_each_roi.append(each_roi)
+    print('='*35)
+    print(f'i = {i}')
+    print(f'touch_amount = {touch_amount}')
+    print(f'total_pair_amount = {total_pair_amount}')
+    print(f'each_roi = {each_roi}')
+    print('='*35)
+result = np.array(result)
+result_pair = np.array(result_pair)
+result_each_roi = np.array(result_each_roi)
+plt.plot(np.array([i for i in range(753490,753740)])/10000000,result)
+plt.plot(np.array([i for i in range(753490,753740)])/10000000,result_pair)
+plt.plot(np.array([i for i in range(753490,753740)])/10000000,result_each_roi)
+plt.plot(np.array([i for i in range(753490,753740)])/10000000,result_each_roi*0.0005*4)
+plt.plot(np.array([i for i in range(753490,753740)])/10000000,-result_pair*0.0005*4+result_pair*result_each_roi)
+plt.plot(np.array([i for i in range(753490,753740)])/10000000,-result_pair*(0.0005+0.000347465)*4+result_pair*result_each_roi)
+print((list(-result_pair*0.0005*4+result_pair*result_each_roi).index(max(-result_pair*0.0005*4+result_pair*result_each_roi))+1)/10000000)
+print((list(-result_pair*(0.0005+0.000347465)*4+result_pair*result_each_roi)
+       .index(max(-result_pair*(0.0005+0.000347465)*4+result_pair*result_each_roi))+1)/10000000)
+plt.show()
+
+#0.07536
+
+
+

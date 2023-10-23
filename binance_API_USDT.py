@@ -90,8 +90,7 @@ def dict2csv(dic, filename):
         csv_writer.writerow(dic1)'''
     csv_writer.writerow(dic)
     file.close()
-a = (f'123123'
-     f'123')
+
 apikey = 'iKSaIGVPKxz55GmSyqlUlfZZQ7dQaba8Ndwi4TOnMFKfLqvyG1YnMcPh1kupTS6V'
 Secret_KEY = 'HVoir6f7YPaUtuWbCAPKq7Q3lWmfQHQA1xu9lCDxFWlZB4fLbuji80ecuXAm4l59'
 

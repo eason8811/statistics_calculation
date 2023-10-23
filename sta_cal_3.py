@@ -10,9 +10,9 @@ long = 1
 short = -1
 empty = 0
 
-#symbol_pairs = [['EOSUSDT', 'FLOWUSDT'], ['ONTUSDT', 'ZRXUSDT'], ['ONTUSDT', 'CTSIUSDT'], ['BATUSDT', 'ZRXUSDT'], ['BATUSDT', 'CTSIUSDT'], ['ZILUSDT', 'XEMUSDT'], ['ZRXUSDT', 'CTSIUSDT'], ['OMGUSDT', 'BANDUSDT'], ['KAVAUSDT', 'LDOUSDT'], ['BANDUSDT', 'GTCUSDT'], ['BANDUSDT', 'FLOWUSDT'], ['RLCUSDT', 'GTCUSDT'], ['WAVESUSDT', 'SNXUSDT'], ['ICXUSDT', 'CELOUSDT'], ['ICXUSDT', 'RDNTUSDT'], ['ENJUSDT', 'GMTUSDT'], ['SKLUSDT', 'XEMUSDT'], ['1INCHUSDT', 'MINAUSDT'], ['XEMUSDT', 'PEOPLEUSDT'], ['MANAUSDT', 'MINAUSDT']]
+#symbol_pairs = [['ADAUSDT', 'LRCUSDT'], ['ADAUSDT', 'CELOUSDT'], ['XTZUSDT', 'SANDUSDT'], ['XTZUSDT', 'IMXUSDT'], ['ZILUSDT', 'XEMUSDT'], ['OMGUSDT', 'FLOWUSDT'], ['SXPUSDT', '1INCHUSDT'], ['RLCUSDT', 'ALICEUSDT'], ['RLCUSDT', 'GTCUSDT'], ['ENJUSDT', 'CELOUSDT'], ['NEARUSDT', 'ALICEUSDT'], ['LRCUSDT', 'GMTUSDT'], ['CTKUSDT', 'BLURUSDT'], ['XEMUSDT', 'ONEUSDT'], ['XEMUSDT', 'PEOPLEUSDT'], ['MANAUSDT', 'MINAUSDT'], ['GTCUSDT', 'LUNA2USDT'], ['CELOUSDT', 'GMTUSDT'], ['EDUUSDT', 'RADUSDT'], ['SUIUSDT', 'RADUSDT']]
 
-symbol_pairs = ['ICXUSDT', 'RDNTUSDT']#[['ENJUSDT', 'RDNTUSDT']]
+symbol_pairs = [['MANAUSDT', 'MINAUSDT']]#[['ENJUSDT', 'RDNTUSDT']]
 period = 1000
 
 #处理symbols
@@ -25,11 +25,11 @@ print(symbol_pairs_after)
 print('\n\n')
 
 #csv读取所有数据
-df_data = pd.read_csv('kline_data_symbol_close_rate2one.csv', encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
+#df_data = pd.read_csv('kline_data_symbol_close_rate2one.csv', encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
 df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312').loc[:,symbol_pairs_after] # gb2312
-symbols = list(df_data.columns)
-data = df_data.to_dict('list')
-data_matric = df_data.values
+symbols = list(df_data_org.columns)
+# data = df_data.to_dict('list')
+# data_matric = df_data.values
 data_org = df_data_org.to_dict('list')
 data_org_2_one = {}
 for i in range(len(data_org.keys())):
@@ -86,6 +86,7 @@ for i in range(len(symbol_pairs)):
     print((f'consq_std = {consq_std}'))
     print(f'result = {adf_consq}')
     print(f'{dfgls_consq}')
+    print(f'幅度：{(18 * 0.3 * consq_std + 2)*100}%')
     print('\n')
 
     plt.clf()

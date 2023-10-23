@@ -35,11 +35,11 @@ def get_all_position_ROI(now_price: float, pos_list: list) -> float:
     return roi
 
 
-@retry(stop=stop_after_delay(15))
+#@retry(stop=stop_after_delay(15))
 def get_info(symbol='BTCUSDT', limit=1500, endTime=int(time.time() * 1000)):
     global binance
     binance = BINANCE()
-    interval = "15m"
+    interval = "3m"
     # limit = "73"
     output = []
     # klines = []
@@ -109,7 +109,8 @@ print(symbols)
 data = {}
 data_matric = []
 data_org = {}
-kline_num = int(7 * 24 * 4)
+#kline_num = int(12 * 24 * 4*3)
+kline_num = int(3.5 * 24 * 4*5)
 i = 0
 endTime = int(time.time() * 1000)
 # endTime = 1695974400000     #230929
@@ -144,7 +145,7 @@ with open('kline_data_org.csv', 'w', encoding='utf-8', newline='') as file_obj:
     dictWriter.writerows(output)
 
 
-def back_test(long_ma_period: int,pos_amount: int) -> None:
+def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[float]) -> list[float]:
     df_data_org = pd.read_csv('kline_data_org.csv', encoding='gb2312')  # gb2312
     symbols = list(df_data_org.columns)
     y = np.array(df_data_org.loc[:, symbols[0]])
@@ -154,9 +155,9 @@ def back_test(long_ma_period: int,pos_amount: int) -> None:
     # long_ma_period = 200
     std_100 = []
     x_y = x - y
-    for i in range(99, len(x)):
-        ma = np.mean(x_y[i - 100 + 1:i + 1])
-        st = np.std(x_y[i - 100 + 1:i + 1])
+    for i in range(499, len(x)):
+        ma = np.mean(x_y[i - 500 + 1:i + 1])
+        st = np.std(x_y[i - 500 + 1:i + 1])
         MA_100.append(ma)
         std_100.append(st)
     MA_100 = np.array(MA_100)
@@ -181,10 +182,10 @@ def back_test(long_ma_period: int,pos_amount: int) -> None:
     fee = 0
     for i in range(long_ma_period - 1, len(x)):
         if x_y[i] >= 0:  # and MA_long[i-long_ma_period] >= MA_100[i-long_ma_period+len(MA_100)-len(MA_long)]
-            if x_y[i] > MA_100[i - 99] + 1 * std_100[i - 99] and can_open and len(posx_list) < pos_amount:
+            if x_y[i] > MA_100[i - 499] + 1 * std_100[i - 499] and can_open and len(posx_list) < pos_amount:
                 open_index = i if pos == 0 else open_index
-                posx = Position(x[i], amount=34, direction=-1)
-                posy = Position(y[i], amount=34, direction=1)
+                posx = Position(x[i], amount=initial_amount/pos_amount, direction=-1)
+                posy = Position(y[i], amount=initial_amount/pos_amount, direction=1)
                 posx_list.append(posx)
                 posy_list.append(posy)
                 total_pos_amount += 1
@@ -193,14 +194,14 @@ def back_test(long_ma_period: int,pos_amount: int) -> None:
                 max_pos_amount = max(max_pos_amount, len(posx_list))
                 can_open = False
 
-            elif x_y[i] < MA_100[i - 99] - 3 * std_100[i - 99] and pos != 0:
+            elif x_y[i] < MA_100[i - 499] - 3 * std_100[i - 499] and pos != 0:
                 r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
                          get_all_position_ROI(now_price=y[i], pos_list=posy_list))
-                if r_all < 0:
+                amount = posx_list[0].amount
+                if r_all < (len(posx_list) + len(posy_list)) * amount * 0.0005 * 4:
                     temp.append(r_all)
                     continue
-                amount = posx_list[0].amount
-                fee -= (len(posx_list) + len(posy_list)) * amount * 0.0004 * 2
+                fee -= (len(posx_list) + len(posy_list)) * amount * 0.0005 * 4
                 # print(fee)
                 close_index = i
                 temp.append(r_all)
@@ -214,7 +215,7 @@ def back_test(long_ma_period: int,pos_amount: int) -> None:
                 temp.append(r_all)
             elif pos == 0:
                 temp.append(0.0)
-            if x_y[i] < MA_100[i - 99] + 1 * std_100[i - 99] and not can_open:
+            if x_y[i] < MA_100[i - 499] + 1 * std_100[i - 499] and not can_open:
                 can_open = True
         elif 0:
             if x_y[i] < MA_100[i - 99] - 1 * std_100[i - 99] and can_open:
@@ -254,21 +255,24 @@ def back_test(long_ma_period: int,pos_amount: int) -> None:
 
     roi = 0
     for i in range(len(temp)):
-        if temp[i] == 0 and temp[i - 1] != 0:
-            roi += temp[i - 1]
-        if temp[i] == 0:
-            result.append(roi)
+        if i == 0:
+            result.append(temp[i])
         else:
-            result.append(roi + temp[i])
+            if temp[i] == 0 and temp[i - 1] != 0:
+                roi += temp[i - 1]
+            if temp[i] == 0:
+                result.append(roi)
+            else:
+                result.append(roi + temp[i])
 
     # plt.plot(y)
     # plt.plot(x)
     plt.plot(x_y)
-    plt.plot([i for i in range(99, len(x_y))], MA_100)
-    plt.plot([i for i in range(99, len(x_y))], MA_100 - std_100)
-    plt.plot([i for i in range(99, len(x_y))], MA_100 + std_100)
-    plt.plot([i for i in range(99, len(x_y))], MA_100 - 3 * std_100)
-    plt.plot([i for i in range(99, len(x_y))], MA_100 + 3 * std_100)
+    plt.plot([i for i in range(499, len(x_y))], MA_100)
+    plt.plot([i for i in range(499, len(x_y))], MA_100 - std_100)
+    plt.plot([i for i in range(499, len(x_y))], MA_100 + std_100)
+    plt.plot([i for i in range(499, len(x_y))], MA_100 - 3 * std_100)
+    plt.plot([i for i in range(499, len(x_y))], MA_100 + 3 * std_100)
     plt.plot([i for i in range(long_ma_period - 1, len(x_y))], np.array(result))
     plt.plot([i for i in range(long_ma_period - 1, len(x_y))], np.array(temp))
     # plt.plot([i for i in range(long_ma_period-1,len(x_y))],MA_long)
@@ -276,21 +280,40 @@ def back_test(long_ma_period: int,pos_amount: int) -> None:
     print(max_pos_amount)
     print('=' * 35)
     print(f'pos_amount = {pos_amount}')
-    print(f'${round(result[-1] * 34, 3)}')
-    print(f'{round(result[-1] * 34 / 34 / 6 / 2 * 100, 3)}%')
-    print(f'${round(result[-1] * 34 + fee, 3)}')
-    print(f'{round((result[-1] * 34 + fee) / 34 / 6 / 2 * 100, 3)}%')
-    print(f'{round(result[-1] * 34 / 10 * 100, 3)}%')
-    print(f'{round((result[-1] * 34 + fee) / 10 * 100, 3)}%')
+    print(f'${round(result[-1], 3)}')
+    print(f'${round(result[-1]+fee, 3)}')
+    print(f'${round(result[-1] * amount/pos_amount, 3)}')
+    print(f'{round(result[-1] * amount/pos_amount / 34 / 6 / 2 * 100, 3)}%')
+    ret.append(round(result[-1] * amount/pos_amount / 34 / 6 / 2 * 100, 3))
+    print(f'${round(result[-1] * amount/pos_amount + fee, 3)}')
+    print(f'{round((result[-1] * amount/pos_amount + fee) / 34 / 6 / 2 * 100, 3)}%')
+    print(f'{round(result[-1] * amount/pos_amount / 10 * 100, 3)}%')
+    print(f'{round((result[-1] * amount/pos_amount + fee) / 10 * 100, 3)}%')
     print('=' * 35)
     plt.show()
-    # 6245.3
-    # 520.444%
-    # 208.127
-    # 17.344
-    # $3216.127
-    # 268.011%
+    # pos_amount = 24
+    # $467.14
+    # $37.108
+    return ret
 
+result = []
+x = []
+for pos_amount in range(24, 25):
+    result.append(back_test(500,pos_amount,int(250/7*125),[]))
+    x.append(pos_amount)
 
-for pos_amount in range(5, 6):
-    back_test(100,pos_amount)
+# plt.clf()
+# plt.plot(x,result)
+# plt.show()
+
+# 15m
+# 504
+# 50
+
+# 5m
+# 1356
+# 129
+
+# 3m
+# 2166
+# 201
