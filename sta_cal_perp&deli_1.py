@@ -198,7 +198,7 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
                 can_open = False
                 print(f'Open! i = {i}')
 
-            elif x_y[i] < MA_100[i - 499] - 3 * std_100[i - 499] and pos != 0:
+            elif x_y[i] < MA_100[i - 499] - 10 * std_100[i - 499] and pos != 0:
                 r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
                          get_all_position_ROI(now_price=y[i], pos_list=posy_list))
                 amount = posx_list[0].amount
@@ -261,7 +261,9 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
             if x_y[i] < MA_100[i - 99] + 1 * std_100[i - 99] and not can_open:
                 can_open = True
         else:
-            temp.append(0.0)
+            r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
+                     get_all_position_ROI(now_price=y[i], pos_list=posy_list))
+            temp.append(r_all)
             result.append(result_last_value + temp[-1])
 
     '''roi = 0
@@ -275,7 +277,7 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
                 result.append(roi)
             else:
                 result.append(roi + temp[i])'''
-
+    amount = posx_list[0].amount
     # plt.plot(y)
     # plt.plot(x)
     plt.plot(x_y)
