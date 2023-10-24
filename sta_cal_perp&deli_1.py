@@ -102,7 +102,7 @@ def get_info(symbol='BTCUSDT', limit=1500, endTime=int(time.time() * 1000)):
         dictWriter.writerows(output)
 
 
-symbols = ['BTCUSDT', 'BTCUSDT_231229']
+symbols = ['BTCUSDT', 'BTCUSDT_230630']
 
 print(symbols)
 
@@ -110,11 +110,11 @@ data = {}
 data_matric = []
 data_org = {}
 #kline_num = int(12 * 24 * 4*3)
-kline_num = int(3.5 * 24 * 4*5)
+kline_num = int(90 * 24 * 4*5)
 i = 0
-endTime = int(time.time() * 1000)
+# endTime = int(time.time() * 1000)
 # endTime = 1695974400000     #230929
-# endTime = 1688112000000     #230630
+endTime = 1688112000000     #230630
 # endTime = 1680249600000     #230331
 # endTime = 1672387200000     #221230
 for n in tqdm(range(len(symbols))):
@@ -180,6 +180,7 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
     max_pos_amount = 0
     can_open = True
     fee = 0
+    result_last_value = 0
     for i in range(long_ma_period - 1, len(x)):
         if x_y[i] >= 0:  # and MA_long[i-long_ma_period] >= MA_100[i-long_ma_period+len(MA_100)-len(MA_long)]
             if x_y[i] > MA_100[i - 499] + 1 * std_100[i - 499] and can_open and len(posx_list) < pos_amount:
@@ -191,30 +192,37 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
                 total_pos_amount += 1
                 pos += 1
                 temp.append(0.0)
+                result.append(result_last_value+temp[-1])
                 max_pos_amount = max(max_pos_amount, len(posx_list))
                 can_open = False
+                print(f'Open! i = {i}')
 
             elif x_y[i] < MA_100[i - 499] - 3 * std_100[i - 499] and pos != 0:
                 r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
                          get_all_position_ROI(now_price=y[i], pos_list=posy_list))
                 amount = posx_list[0].amount
-                if r_all < (len(posx_list) + len(posy_list)) * amount * 0.0005 * 4:
+                if r_all < (len(posx_list) + len(posy_list)) * amount * 0.0005 * 2:
                     temp.append(r_all)
+                    result.append(result_last_value + temp[-1])
                     continue
-                fee -= (len(posx_list) + len(posy_list)) * amount * 0.0005 * 4
-                # print(fee)
-                close_index = i
+                fee -= (len(posx_list) + len(posy_list)) * amount * 0.0005 * 2
+                print(f'fee = {fee}')
                 temp.append(r_all)
+                result.append(result_last_value+temp[-1])
+                result_last_value = result[-1]+fee
                 posx_list.clear()
                 posy_list.clear()
                 pos = 0
                 can_open = True
+                print(f'Close! i = {i}')
             elif pos != 0:
                 r_all = (get_all_position_ROI(now_price=x[i], pos_list=posx_list) +
                          get_all_position_ROI(now_price=y[i], pos_list=posy_list))
                 temp.append(r_all)
+                result.append(result_last_value+temp[-1])
             elif pos == 0:
                 temp.append(0.0)
+                result.append(result_last_value+temp[-1])
             if x_y[i] < MA_100[i - 499] + 1 * std_100[i - 499] and not can_open:
                 can_open = True
         elif 0:
@@ -252,8 +260,9 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
                 can_open = True
         else:
             temp.append(0.0)
+            result.append(result_last_value + temp[-1])
 
-    roi = 0
+    '''roi = 0
     for i in range(len(temp)):
         if i == 0:
             result.append(temp[i])
@@ -263,7 +272,7 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
             if temp[i] == 0:
                 result.append(roi)
             else:
-                result.append(roi + temp[i])
+                result.append(roi + temp[i])'''
 
     # plt.plot(y)
     # plt.plot(x)
@@ -282,6 +291,7 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
     print(f'pos_amount = {pos_amount}')
     print(f'${round(result[-1], 3)}')
     print(f'${round(result[-1]+fee, 3)}')
+    print(f'fee ${round(fee, 3)}')
     print(f'${round(result[-1] * amount/pos_amount, 3)}')
     print(f'{round(result[-1] * amount/pos_amount / 34 / 6 / 2 * 100, 3)}%')
     ret.append(round(result[-1] * amount/pos_amount / 34 / 6 / 2 * 100, 3))
