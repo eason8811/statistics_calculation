@@ -102,7 +102,7 @@ def get_info(symbol='BTCUSDT', limit=1500, endTime=int(time.time() * 1000)):
         dictWriter.writerows(output)
 
 
-symbols = ['BTCUSDT', 'BTCUSDT_230630']
+symbols = ['BTCUSDT', 'BTCUSDT_230929']
 
 print(symbols)
 
@@ -113,8 +113,8 @@ data_org = {}
 kline_num = int(90 * 24 * 4*5)
 i = 0
 # endTime = int(time.time() * 1000)
-# endTime = 1695974400000     #230929
-endTime = 1688112000000     #230630
+endTime = 1695974400000     #230929
+# endTime = 1688112000000     #230630
 # endTime = 1680249600000     #230331
 # endTime = 1672387200000     #221230
 for n in tqdm(range(len(symbols))):
@@ -180,10 +180,11 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
     max_pos_amount = 0
     can_open = True
     fee = 0
+    total_fee = 0
     result_last_value = 0
     for i in range(long_ma_period - 1, len(x)):
         if x_y[i] >= 0:  # and MA_long[i-long_ma_period] >= MA_100[i-long_ma_period+len(MA_100)-len(MA_long)]
-            if x_y[i] > MA_100[i - 499] + 1 * std_100[i - 499] and can_open and len(posx_list) < pos_amount:
+            if x_y[i] > MA_100[i - 499] + 3 * std_100[i - 499] and can_open and len(posx_list) < pos_amount:
                 open_index = i if pos == 0 else open_index
                 posx = Position(x[i], amount=initial_amount/pos_amount, direction=-1)
                 posy = Position(y[i], amount=initial_amount/pos_amount, direction=1)
@@ -205,11 +206,12 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
                     temp.append(r_all)
                     result.append(result_last_value + temp[-1])
                     continue
-                fee -= (len(posx_list) + len(posy_list)) * amount * 0.0005 * 2
+                fee = (len(posx_list) + len(posy_list)) * amount * 0.0005 * 2
+                total_fee -= fee
                 print(f'fee = {fee}')
                 temp.append(r_all)
                 result.append(result_last_value+temp[-1])
-                result_last_value = result[-1]+fee
+                result_last_value = result[-1]-fee
                 posx_list.clear()
                 posy_list.clear()
                 pos = 0
@@ -290,15 +292,15 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
     print('=' * 35)
     print(f'pos_amount = {pos_amount}')
     print(f'${round(result[-1], 3)}')
-    print(f'${round(result[-1]+fee, 3)}')
-    print(f'fee ${round(fee, 3)}')
+    print(f'${round(result[-1]+total_fee, 3)}')
+    print(f'fee ${round(total_fee, 3)}')
     print(f'${round(result[-1] * amount/pos_amount, 3)}')
     print(f'{round(result[-1] * amount/pos_amount / 34 / 6 / 2 * 100, 3)}%')
     ret.append(round(result[-1] * amount/pos_amount / 34 / 6 / 2 * 100, 3))
-    print(f'${round(result[-1] * amount/pos_amount + fee, 3)}')
-    print(f'{round((result[-1] * amount/pos_amount + fee) / 34 / 6 / 2 * 100, 3)}%')
+    print(f'${round(result[-1] * amount/pos_amount + total_fee, 3)}')
+    print(f'{round((result[-1] * amount/pos_amount + total_fee) / 34 / 6 / 2 * 100, 3)}%')
     print(f'{round(result[-1] * amount/pos_amount / 10 * 100, 3)}%')
-    print(f'{round((result[-1] * amount/pos_amount + fee) / 10 * 100, 3)}%')
+    print(f'{round((result[-1] * amount/pos_amount + total_fee) / 10 * 100, 3)}%')
     print('=' * 35)
     plt.show()
     # pos_amount = 24
@@ -309,7 +311,7 @@ def back_test(long_ma_period: int,pos_amount: int,initial_amount :int,ret :list[
 result = []
 x = []
 for pos_amount in range(24, 25):
-    result.append(back_test(500,pos_amount,int(250/7*125),[]))
+    result.append(back_test(500,pos_amount,int(100/7*125),[]))
     x.append(pos_amount)
 
 # plt.clf()
