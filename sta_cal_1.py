@@ -239,7 +239,6 @@ for n in tqdm(range(len(symbols))):
         symbols.remove(symbols[i])
         continue
     data_symbol_close_rate = []
-    data_symbol_close_rate2one = []
     for j in range(len(data_symbol_close)):
         if j == 0:
             data_symbol_close_rate.append(0.0)
@@ -265,9 +264,9 @@ for n in tqdm(range(len(symbols))):
         symbols.remove(symbols[i])
         continue
     if len(data_symbol_close) == kline_num:
-        data[symbols[i]] = data_symbol_close_rate2one
+        data[symbols[i]] = data_symbol_close_rate
         data_org[symbols[i]] = list(data_symbol_close.values)
-        data_matric.append(data_symbol_close_rate2one)
+        data_matric.append(data_symbol_close_rate)
     i = i + 1
     time.sleep(0.3)
 
@@ -281,7 +280,7 @@ print('=================================================')
 
 
 title_name = symbols
-'''with open('kline_data_symbol_close_rate2one.csv', 'w', encoding='utf-8', newline='') as file_obj:
+with open('kline_data_symbol_close_rate2one.csv', 'w', encoding='utf-8', newline='') as file_obj:
     # 1.创建DicetWriter对象
     dictWriter = csv.DictWriter(file_obj, title_name)
     # 2.写表头
@@ -293,7 +292,7 @@ title_name = symbols
         for j in range(len(data.keys())):
             kline_of_symbol[list(data.keys())[j]] = data[list(data.keys())[j]][i]
         output.append(kline_of_symbol)
-    dictWriter.writerows(output)'''
+    dictWriter.writerows(output)
 with open('kline_data_org.csv', 'w', encoding='utf-8', newline='') as file_obj:
     # 1.创建DicetWriter对象
     dictWriter = csv.DictWriter(file_obj, title_name)

@@ -235,6 +235,7 @@ data_matric = df_data.values
 data_org = df_data_org.to_dict('list')
 df_data_eul = []
 df_data_corrlation = []
+df_data_corrlation_perc = []
 df_data_r2 = []
 df_data_a = []
 df_data_p = []
@@ -247,22 +248,29 @@ for i in range(len(columns_value)):
         column.append(sy_i_minus_sy_j)
     df_data_eul.append((column - np.mean(column)) / max(column))
 df_data_eul = pd.DataFrame(df_data_eul,index=columns_value,columns=columns_value).copy()
-
-#计算相关系数
+'''
+'''#计算相关系数
 for i in tqdm(range(len(columns_value))):
     column = []
+    column_perc = []
     for j in range(len(columns_value)):
-        a_diff = df_data[columns_value[i]] - np.mean(df_data[columns_value[i]])
-        p_diff = df_data[columns_value[j]] - np.mean(df_data[columns_value[j]])
+        a_diff_perc = df_data[columns_value[i]] - np.mean(df_data[columns_value[i]])
+        p_diff_perc = df_data[columns_value[j]] - np.mean(df_data[columns_value[j]])
         a_diff = df_data_org[columns_value[i]] - np.mean(df_data_org[columns_value[i]])
         p_diff = df_data_org[columns_value[j]] - np.mean(df_data_org[columns_value[j]])
         numerator = np.sum(a_diff * p_diff)
         denominator = np.sqrt(np.sum(a_diff ** 2)) * np.sqrt(np.sum(p_diff ** 2))
         sy_i_minus_sy_j = numerator / denominator
-        column.append(sy_i_minus_sy_j)
+        column.append(sy_i_minus_sy_j * 1)
+        numerator = np.sum(a_diff_perc * p_diff_perc)
+        denominator = np.sqrt(np.sum(a_diff_perc ** 2)) * np.sqrt(np.sum(p_diff_perc ** 2))
+        sy_i_minus_sy_j = numerator / denominator
+        column_perc.append(sy_i_minus_sy_j * 1)
     df_data_corrlation.append(column)
+    df_data_corrlation_perc.append(column_perc)
 df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
-
+df_data_corrlation_perc = pd.DataFrame(df_data_corrlation_perc,index=columns_value,columns=columns_value).copy()'''
+'''
 #对y-x进行一阶单整平稳性检验
 for i in tqdm(range(len(columns_value))):
     column = []
@@ -313,18 +321,29 @@ df_data_p.to_csv("df_data_p.csv",sep=',')'''
 #进行DFGLS平稳性检验
 for i in tqdm(range(len(columns_value))):
     column = []
+    column_perc = []
     for j in range(len(columns_value)):
         y = np.array(df_data_org.loc[:,columns_value[i]])
         x = np.array(df_data_org.loc[:,columns_value[j]])
+        y_perc = np.array(df_data_org.loc[:, columns_value[i]])
+        x_perc = np.array(df_data_org.loc[:, columns_value[j]])
         y_x = y-x
+        y_x_perc = y_perc-x_perc
         if y_x[0] != 0.0:
             dfgls_result = DFGLS(y_x).stat
         else:
             dfgls_result = -1
+        if y_x_perc[0] != 0.0:
+            dfgls_result_perc = DFGLS(y_x_perc).stat
+        else:
+            dfgls_result_perc = -1
 
         column.append(-dfgls_result)
+        column_perc.append(-dfgls_result_perc)
     df_data_corrlation.append(column)
+    df_data_corrlation_perc.append(column_perc)
 df_data_corrlation = pd.DataFrame(df_data_corrlation,index=columns_value,columns=columns_value).copy()
+df_data_corrlation_perc = pd.DataFrame(df_data_corrlation_perc,index=columns_value,columns=columns_value).copy()
 
 df_data_corrlation.to_csv("df_data_p.cav",sep=',')
 #corr_matric = np.array(df_data_eul)
@@ -332,6 +351,7 @@ df_data_corrlation.to_csv("df_data_p.cav",sep=',')
 #corr_matric = np.array(df_data_a)
 #corr_matric = np.array(df_data_p)
 corr_matric = np.array(df_data_corrlation)
+corr_matric_perc = np.array(df_data_corrlation_perc)
 '''corr_matric = 18.3556 * np.array(df_data_eul) + 13.6656 * np.array(df_data_corrlation) + 2.8558 * np.array(df_data_r2) - \
               5.5576 * var + 957.7492 * np.array(df_data_a) + 13.974'''
 correlate = {}
@@ -361,6 +381,32 @@ for i in range(len(corr_matric)):
 print('\n')
 print(correlate)
 
+correlate_perc = {}
+for i in range(len(corr_matric_perc)):
+    for j in range(i+1,len(corr_matric_perc)):
+        if correlate_perc == {} :
+            correlate_perc[f"{symbols[i]}|{symbols[j]}"] = corr_matric_perc[i][j]
+        else:
+            if len(correlate_perc.keys()) < 20:
+                for n in range(len(correlate_perc.keys())):
+                    if corr_matric_perc[i][j] > correlate_perc[list(correlate_perc.keys())[n]]:
+                    #if corr_matric[i][j] > -0.05 :
+                        correlate_perc[f"{symbols[i]}|{symbols[j]}"] = corr_matric_perc[i][j]
+                        break
+            elif len(correlate_perc) == 20:
+                isBreak = False
+                for n in range(20):
+                    if corr_matric_perc[i][j] > correlate_perc[list(correlate_perc.keys())[n]]:
+                    #if corr_matric[i][j] > -0.05:
+                        value = min(list(correlate_perc.values()))
+                        for m in range(len(correlate_perc.keys())):
+                            if correlate_perc[list(correlate_perc.keys())[m]] == value:
+                                del correlate_perc[list(correlate_perc.keys())[m]]
+                                break
+                        correlate_perc[f"{symbols[i]}|{symbols[j]}"] = corr_matric_perc[i][j]
+                        break
+print('\n')
+print(correlate_perc)
 '''for i in range(len(corr_matric)):
     for j in range(i+1,len(corr_matric)):
         if corr_matric[i][j][0] < corr_matric[i][j][2][0]:
@@ -378,6 +424,15 @@ for i in range(len(correlate_keys)):
     symbol_pairs.append([symbol1,symbol2])
 print(symbol_pairs)
 print('\n')
+print('\n=================================================\n')
+correlate_perc_keys = list(correlate_perc.keys())
+symbol_perc_pairs = []
+for i in range(len(correlate_perc_keys)):
+    symbol1 = correlate_perc_keys[i].split('|')[0]
+    symbol2 = correlate_perc_keys[i].split('|')[1]
+    symbol_perc_pairs.append([symbol1,symbol2])
+print(symbol_perc_pairs)
+print('\n')
 
 for i in range(len(symbol_pairs)):
     print(f'{round(i / len(symbol_pairs) * 100, 3)}%')
@@ -393,7 +448,7 @@ for i in range(len(symbol_pairs)):
     plt.plot(data_org[symbol_pairs[i][1]])
     #plt.plot(avg, "-")
     #plt.plot(var, "*")
-    plt.savefig(f'D:\\学校文件\\Python\\fig\\{symbol_pairs[i][0]} - {symbol_pairs[i][1]}.png')
+    plt.savefig(f'D:\\学校文件\\Python\\fig\\org\\{symbol_pairs[i][0]} - {symbol_pairs[i][1]}.png')
 
     print(f"最大 {symbol_pairs[i][0]} - {symbol_pairs[i][1]} = {max(abs(max(data_symbol_minus_list)),abs(min(data_symbol_minus_list)))}")
     print(f"AVG {symbol_pairs[i][0]} - {symbol_pairs[i][1]} = {avg[0]}")
@@ -404,4 +459,32 @@ for i in range(len(symbol_pairs)):
     sns.heatmap(df_data_corrlation, annot=False)
     # plt.pause(0.2)
 plt.show()
+plt.savefig(f'D:\\学校文件\\Python\\fig\\perc\\heat.png')
+plt.clf()
+for i in range(len(symbol_perc_pairs)):
+    print(f'{round(i / len(symbol_perc_pairs) * 100, 3)}%')
+    data_symbol_minus_list = []
+    for n in range(len(data_org[symbol_perc_pairs[i][0]])):
+        data_symbol_minus_list.append(data_org[symbol_perc_pairs[i][0]][n] - data_org[symbol_perc_pairs[i][1]][n])
+    avg = np.ones(len(data_symbol_minus_list)) * np.average(data_symbol_minus_list)
+    var = np.ones(len(data_symbol_minus_list)) * np.var(data_symbol_minus_list, ddof=1)
+    data_symbol_minus[f'{symbol_perc_pairs[i][0]} - {symbol_perc_pairs[i][1]}'] = data_symbol_minus_list
+    plt.clf()
+    plt.plot(data_symbol_minus_list,'red')
+    plt.plot(data_org[symbol_perc_pairs[i][0]])
+    plt.plot(data_org[symbol_perc_pairs[i][1]])
+    #plt.plot(avg, "-")
+    #plt.plot(var, "*")
+    plt.savefig(f'D:\\学校文件\\Python\\fig\\perc\\{symbol_pairs[i][0]}_perc - {symbol_pairs[i][1]}_perc.png')
+
+    print(f"最大 {symbol_pairs[i][0]} - {symbol_pairs[i][1]} = {max(abs(max(data_symbol_minus_list)),abs(min(data_symbol_minus_list)))}")
+    print(f"AVG {symbol_pairs[i][0]} - {symbol_pairs[i][1]} = {avg[0]}")
+    print(f"VAR {symbol_pairs[i][0]} - {symbol_pairs[i][1]} = {var[0]}")
+    '''result = sm.tsa.stattools.coint(df_data_org[symbol_pairs[i][0]], df_data_org[symbol_pairs[i][1]])
+    print(f"result = {result}\n")'''
+    plt.clf()
+    sns.heatmap(df_data_corrlation, annot=False)
+    # plt.pause(0.2)
+plt.show()
+plt.savefig(f'D:\\学校文件\\Python\\fig\\perc\\heat_perc.png')
 
