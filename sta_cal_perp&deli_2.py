@@ -100,27 +100,42 @@ def get_info(symbol='BTCUSDT', limit=1500, endTime=int(time.time() * 1000)):
         dictWriter.writerows(output)
 
 symbol_perp = 'BTCUSDT'
-symbols_deli = ['BTCUSDT_221230', 'BTCUSDT_230331', 'BTCUSDT_230630', 'BTCUSDT_230929']
-end_time = [1672387200000, 1680249600000, 1688112000000, 1695974400000]
-kline_num = int(180 * 24 * 4 * 5)
+symbols_deli = ['BTCUSDT_221230', 'BTCUSDT_230331', 'BTCUSDT_230630', 'BTCUSDT_230929', 'BTCUSDT_231229']
+end_time = [1672387200000, 1680249600000, 1688112000000, 1695974400000, 1698112962866]
+#1664524800000  2022-09-30  1656057600000   2022-06-24
+kline_num = int(90 * 24 * 4 * 5)
+kline_num_list_perp = [int((1672387200000-1664524800000)/1000/180),int((1680249600000-1672387200000)/1000/180),
+                       int((1688112000000-1680249600000)/1000/180),int((1695974400000-1688112000000)/1000/180),
+                       int((1698112962866-1695974400000)/1000/180)]
+# kline_num_list_deli = [int((1672387200000-1664524800000)/1000/180)-37860,int((1680249600000-1664524800000)/1000/180)-39360,
+#                        int((1688112000000-1672387200000)/1000/180)-39360,int((1695974400000-1680249600000)/1000/180)-39360]
+kline_num_list_deli = [int((1672387200000-1664524800000)/1000/180),int((1680249600000-1672387200000)/1000/180),
+                       int((1688112000000-1680249600000)/1000/180),int((1695974400000-1688112000000)/1000/180),
+                       int((1698112962866-1695974400000)/1000/180)]
 
 
 data = {}
-for i in range(len(symbols_deli)):
-    get_info(symbol_perp, kline_num, end_time[i])
+b = False
+for i in tqdm(range(len(symbols_deli))):
+    get_info(symbol_perp, kline_num_list_perp[i], end_time[i])
     data_symbol = pd.read_csv('kline_data.csv', index_col=0, encoding='gb2312')  # gb2312
     data_symbol_perp_close = data_symbol['close'].copy()
-    if data[symbol_perp] != None:
-        data[symbol_perp].append(data_symbol_perp_close)
+
+    if b :
+        data[symbol_perp] = data[symbol_perp].append(data_symbol_perp_close)
     else:
         data[symbol_perp] = data_symbol_perp_close
-    get_info(symbols_deli, kline_num, end_time[i])
+        b = True
+    get_info(symbols_deli[i], kline_num_list_deli[i], end_time[i])
     data_symbol = pd.read_csv('kline_data.csv', index_col=0, encoding='gb2312')  # gb2312
     data_symbol_deli_close = data_symbol['close'].copy()
-    data[symbols_deli] = data_symbol_deli_close
+    data[symbols_deli[i]] = data_symbol_deli_close
 
 for key in data.keys():
-    plt.plot(data[key])
+    #plt.plot(data[key])
+    ind = data[key].index
+    y_x = data[key]-data[symbol_perp].loc[ind]
+    plt.plot(y_x)
 plt.show()
 
 
