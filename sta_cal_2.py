@@ -459,7 +459,7 @@ for i in range(len(symbol_pairs)):
     sns.heatmap(df_data_corrlation, annot=False)
     # plt.pause(0.2)
 plt.show()
-plt.savefig(f'D:\\学校文件\\Python\\fig\\perc\\heat.png')
+
 plt.clf()
 for i in range(len(symbol_perc_pairs)):
     print(f'{round(i / len(symbol_perc_pairs) * 100, 3)}%')
@@ -486,5 +486,5 @@ for i in range(len(symbol_perc_pairs)):
     sns.heatmap(df_data_corrlation, annot=False)
     # plt.pause(0.2)
 plt.show()
-plt.savefig(f'D:\\学校文件\\Python\\fig\\perc\\heat_perc.png')
+
 
